@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useTransition } from "react"
+import { useState, useTransition } from "react"
 import {
   IconLayoutDashboard,
   IconPackage,
@@ -26,7 +26,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet"
 import type { DashboardUser, DashboardBusiness } from "./types"
 
@@ -50,7 +49,12 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
   suspended: { label: "Suspendido", variant: "destructive" },
 }
 
-function NavContent({ business, user, pathname }: SidebarProps & { pathname: string }) {
+interface NavContentProps extends SidebarProps {
+  pathname: string
+  onNavigate?: () => void
+}
+
+function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
   const [, startTransition] = useTransition()
   const status = STATUS_MAP[business.status] ?? STATUS_MAP.pending
 
@@ -102,6 +106,7 @@ function NavContent({ business, user, pathname }: SidebarProps & { pathname: str
               )}
               <Link
                 href={item.soon ? "#" : item.href}
+                onClick={item.soon ? undefined : onNavigate}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
@@ -128,6 +133,7 @@ function NavContent({ business, user, pathname }: SidebarProps & { pathname: str
       <div className="px-3 py-3">
         <Link
           href="/"
+          onClick={onNavigate}
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
         >
           <IconArrowLeft className="size-[18px]" />
@@ -189,9 +195,10 @@ export function DashboardSidebar({ business, user }: SidebarProps) {
 
 export function DashboardMobileNav({ business, user }: SidebarProps) {
   const pathname = usePathname()
+  const [open, setOpen] = useState(false)
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
           <IconMenu2 className="size-5" />
@@ -203,11 +210,14 @@ export function DashboardMobileNav({ business, user }: SidebarProps) {
             Local<span className="text-sidebar-primary"> Conecta</span>
           </SheetTitle>
         </SheetHeader>
-        <SheetClose asChild>
-          <div className="flex flex-1 flex-col">
-            <NavContent business={business} user={user} pathname={pathname} />
-          </div>
-        </SheetClose>
+        <div className="flex flex-1 flex-col">
+          <NavContent
+            business={business}
+            user={user}
+            pathname={pathname}
+            onNavigate={() => setOpen(false)}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   )
