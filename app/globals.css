@@ -173,4 +173,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* ─── Prevent iOS Safari zoom on input focus ─────────────────────────
+     Safari zooms in whenever a focused input/textarea/select has a
+     computed font-size smaller than 16px.  Enforce the minimum only on
+     touch screens so desktop styles are untouched.                      */
+  @media (pointer: coarse) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
 }
