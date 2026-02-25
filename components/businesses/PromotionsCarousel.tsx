@@ -1,104 +1,80 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import useEmblaCarousel from "embla-carousel-react"
-import { IconChevronLeft, IconChevronRight, IconTag, IconCalendar, IconInfoCircle } from "@tabler/icons-react"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import type { Promotion } from "@/lib/types/database"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, startTransition } from "react";
+import { IconTag, IconCalendar, IconInfoCircle } from "@tabler/icons-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import type { Promotion } from "@/lib/types/database";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface PromotionsCarouselProps {
-  promotions: Promotion[]
-  onPromotionClick: (promotion: Promotion) => void
+  promotions: Promotion[];
+  onPromotionClick: (promotion: Promotion) => void;
 }
 
 function formatDiscount(promotion: Promotion): string | null {
   if (!promotion.discount_type || promotion.discount_type === "freeform") {
-    return null
+    return null;
   }
   if (promotion.discount_type === "percentage") {
-    return `${promotion.discount_value}% de descuento`
+    return `${promotion.discount_value}% de descuento`;
   }
   if (promotion.discount_type === "fixed") {
-    return `$${promotion.discount_value} de descuento`
+    return `$${promotion.discount_value} de descuento`;
   }
   if (promotion.discount_type === "bogo") {
-    return "2x1"
+    return "2x1";
   }
-  return null
+  return null;
 }
 
-export function PromotionsCarousel({ promotions, onPromotionClick }: PromotionsCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "start",
-    loop: false,
-    slidesToScroll: 1,
-  })
-
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([])
-  const [prevBtnDisabled, setPrevBtnDisabled] = useState(true)
-  const [nextBtnDisabled, setNextBtnDisabled] = useState(true)
-
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev()
-  }, [emblaApi])
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext()
-  }, [emblaApi])
-
-  const scrollTo = useCallback(
-    (index: number) => {
-      if (emblaApi) emblaApi.scrollTo(index)
-    },
-    [emblaApi]
-  )
-
-  const onInit = useCallback(() => {
-    if (!emblaApi) return
-    setScrollSnaps(emblaApi.scrollSnapList())
-  }, [emblaApi])
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return
-    setSelectedIndex(emblaApi.selectedScrollSnap())
-    setPrevBtnDisabled(!emblaApi.canScrollPrev())
-    setNextBtnDisabled(!emblaApi.canScrollNext())
-  }, [emblaApi])
+export function PromotionsCarousel({
+  promotions,
+  onPromotionClick,
+}: PromotionsCarouselProps) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!emblaApi) return
+    if (!api) return;
 
-    onInit()
-    onSelect()
-    emblaApi.on("reInit", onInit)
-    emblaApi.on("reInit", onSelect)
-    emblaApi.on("select", onSelect)
+    startTransition(() => {
+      setCount(api.scrollSnapList().length);
+      setCurrent(api.selectedScrollSnap());
+    });
 
-    return () => {
-      emblaApi.off("reInit", onInit)
-      emblaApi.off("reInit", onSelect)
-      emblaApi.off("select", onSelect)
-    }
-  }, [emblaApi, onInit, onSelect])
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   return (
-    <div className="relative">
-      {/* Carousel viewport */}
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex touch-pan-y flex-nowrap gap-4">
+    <div>
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "start",
+          loop: false,
+          containScroll: "trimSnaps",
+        }}
+        className="w-full"
+      >
+        <CarouselContent>
           {promotions.map((promotion) => {
-            const discount = formatDiscount(promotion)
+            const discount = formatDiscount(promotion);
 
             return (
-              <div
-                key={promotion.id}
-                className="min-w-0 flex-[0_0_100%] sm:flex-[0_0_calc(50%-0.5rem)]"
-              >
+              <CarouselItem key={promotion.id} className="sm:basis-1/2">
                 <Card
                   className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
                   onClick={() => onPromotionClick(promotion)}
@@ -106,13 +82,14 @@ export function PromotionsCarousel({ promotions, onPromotionClick }: PromotionsC
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      onPromotionClick(promotion)
+                      e.preventDefault();
+                      onPromotionClick(promotion);
                     }
                   }}
                 >
                   {promotion.image_url ? (
-                    <div className="relative aspect-[16/9] bg-muted">
+                    <div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={promotion.image_url}
                         alt={promotion.title}
@@ -149,9 +126,13 @@ export function PromotionsCarousel({ promotions, onPromotionClick }: PromotionsC
                         <IconCalendar className="size-3.5" />
                         <span>
                           Válida hasta el{" "}
-                          {format(new Date(promotion.ends_at), "d 'de' MMMM, yyyy", {
-                            locale: es,
-                          })}
+                          {format(
+                            new Date(promotion.ends_at),
+                            "d 'de' MMMM, yyyy",
+                            {
+                              locale: es,
+                            },
+                          )}
                         </span>
                       </div>
                     )}
@@ -162,56 +143,36 @@ export function PromotionsCarousel({ promotions, onPromotionClick }: PromotionsC
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            )
+              </CarouselItem>
+            );
           })}
-        </div>
-      </div>
+        </CarouselContent>
 
-      {/* Navigation buttons */}
-      {promotions.length > 1 && (
-        <>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-background/95 shadow-lg backdrop-blur-sm transition-all hover:scale-110 disabled:opacity-0 sm:flex"
-            onClick={scrollPrev}
-            disabled={prevBtnDisabled}
-            aria-label="Promoción anterior"
-          >
-            <IconChevronLeft className="size-5" />
-          </Button>
+        {promotions.length > 1 && (
+          <>
+            <CarouselPrevious className="hidden sm:flex -left-3 sm:-left-4" />
+            <CarouselNext className="hidden sm:flex -right-3 sm:-right-4" />
+          </>
+        )}
+      </Carousel>
 
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-background/95 shadow-lg backdrop-blur-sm transition-all hover:scale-110 disabled:opacity-0 sm:flex"
-            onClick={scrollNext}
-            disabled={nextBtnDisabled}
-            aria-label="Siguiente promoción"
-          >
-            <IconChevronRight className="size-5" />
-          </Button>
-        </>
-      )}
-
-      {/* Dots indicators */}
-      {promotions.length > 1 && (
+      {/* Dot indicators */}
+      {count > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          {scrollSnaps.map((_, index) => (
+          {Array.from({ length: count }).map((_, index) => (
             <button
               key={index}
               className={`size-2 rounded-full transition-all ${
-                index === selectedIndex
+                index === current
                   ? "bg-primary w-6"
                   : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
               }`}
-              onClick={() => scrollTo(index)}
+              onClick={() => api?.scrollTo(index)}
               aria-label={`Ir a promoción ${index + 1}`}
             />
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }

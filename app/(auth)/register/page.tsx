@@ -1,32 +1,63 @@
-"use client"
+"use client";
 
-import { useActionState, useEffect } from "react"
-import Link from "next/link"
-import { IconBrandGoogle, IconMail, IconLock, IconUser } from "@tabler/icons-react"
-import { sileo } from "sileo"
-import { register, loginWithGoogle } from "@/app/(auth)/actions"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
+import Link from "next/link";
+import {
+  IconBrandGoogle,
+  IconMail,
+  IconLock,
+  IconUser,
+} from "@tabler/icons-react";
+import { sileo } from "sileo";
+import { register, loginWithGoogle } from "@/app/(auth)/actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+
+function GoogleSignInButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      variant="outline"
+      className="h-12 w-full text-[15px] font-medium shadow-sm transition-all hover:shadow-md"
+      disabled={pending}
+    >
+      {pending ? (
+        <span className="flex items-center gap-2">
+          <span className="size-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+          Conectando...
+        </span>
+      ) : (
+        <>
+          <IconBrandGoogle className="mr-2.5 size-5" />
+          Google
+        </>
+      )}
+    </Button>
+  );
+}
 
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(
     async (_prev: { error: string } | null, formData: FormData) => {
-      const result = await register(formData)
-      return result ?? null
+      const result = await register(formData);
+      return result ?? null;
     },
     null,
-  )
+  );
 
   useEffect(() => {
     if (state?.error) {
       sileo.error({
         title: "No se pudo crear la cuenta",
         description: state.error,
-      })
+      });
     }
-  }, [state])
+  }, [state]);
 
   return (
     <div className="space-y-8">
@@ -120,14 +151,7 @@ export default function RegisterPage() {
       </div>
 
       <form action={loginWithGoogle}>
-        <Button
-          type="submit"
-          variant="outline"
-          className="h-12 w-full text-[15px] font-medium shadow-sm transition-all hover:shadow-md"
-        >
-          <IconBrandGoogle className="mr-2.5 size-5" />
-          Google
-        </Button>
+        <GoogleSignInButton />
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
@@ -157,5 +181,5 @@ export default function RegisterPage() {
         </Link>
       </p>
     </div>
-  )
+  );
 }

@@ -1,52 +1,78 @@
-"use client"
+"use client";
 
-import { Suspense, useActionState, useEffect, useRef } from "react"
-import { useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { IconBrandGoogle, IconMail, IconLock } from "@tabler/icons-react"
-import { sileo } from "sileo"
-import { login, loginWithGoogle } from "@/app/(auth)/actions"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { Suspense, useActionState, useEffect, useRef } from "react";
+import { useFormStatus } from "react-dom";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { IconBrandGoogle, IconMail, IconLock } from "@tabler/icons-react";
+import { sileo } from "sileo";
+import { login, loginWithGoogle } from "@/app/(auth)/actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+
+function GoogleSignInButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      variant="outline"
+      className="h-12 w-full text-[15px] font-medium shadow-sm transition-all hover:shadow-md"
+      disabled={pending}
+    >
+      {pending ? (
+        <span className="flex items-center gap-2">
+          <span className="size-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+          Conectando...
+        </span>
+      ) : (
+        <>
+          <IconBrandGoogle className="mr-2.5 size-5" />
+          Google
+        </>
+      )}
+    </Button>
+  );
+}
 
 function LoginForm() {
-  const searchParams = useSearchParams()
-  const next = searchParams.get("next") ?? "/"
-  const authError = searchParams.get("error")
-  const shownAuthError = useRef(false)
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/";
+  const authError = searchParams.get("error");
+  const shownAuthError = useRef(false);
 
   const [state, formAction, pending] = useActionState(
     async (_prev: { error: string } | null, formData: FormData) => {
-      formData.set("next", next)
-      const result = await login(formData)
-      return result ?? null
+      formData.set("next", next);
+      const result = await login(formData);
+      return result ?? null;
     },
     null,
-  )
+  );
 
   useEffect(() => {
     if (authError && !shownAuthError.current) {
-      shownAuthError.current = true
+      shownAuthError.current = true;
       sileo.error({
         title: "Error de autenticacion",
         description:
           authError === "google"
             ? "No se pudo conectar con Google. Intenta de nuevo."
             : "Error al iniciar sesion. Intenta de nuevo.",
-      })
+      });
     }
-  }, [authError])
+  }, [authError]);
 
   useEffect(() => {
     if (state?.error) {
       sileo.error({
         title: "No se pudo iniciar sesion",
         description: state.error,
-      })
+      });
     }
-  }, [state])
+  }, [state]);
 
   return (
     <>
@@ -113,14 +139,7 @@ function LoginForm() {
       </div>
 
       <form action={loginWithGoogle}>
-        <Button
-          type="submit"
-          variant="outline"
-          className="h-12 w-full text-[15px] font-medium shadow-sm transition-all hover:shadow-md"
-        >
-          <IconBrandGoogle className="mr-2.5 size-5" />
-          Google
-        </Button>
+        <GoogleSignInButton />
       </form>
 
       <p className="mt-10 text-center text-sm text-muted-foreground">
@@ -133,7 +152,7 @@ function LoginForm() {
         </Link>
       </p>
     </>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -152,5 +171,5 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
     </div>
-  )
+  );
 }
