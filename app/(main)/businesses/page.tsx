@@ -1,14 +1,12 @@
 import { Suspense } from "react"
-import {
-  IconSearch,
-  IconBuildingStore,
-} from "@tabler/icons-react"
+import { IconSearch, IconBuildingStore } from "@tabler/icons-react"
 import type { Metadata } from "next"
 import {
   getBusinessesDirectory,
   getCategories,
 } from "@/lib/queries/business"
 import type { BusinessDirectoryItem } from "@/lib/queries/business"
+import { getAverageRating, countReviews } from "@/lib/queries/reviews"
 import { isCurrentlyOpen } from "@/components/businesses/BusinessHoursDisplay"
 import { BusinessCard } from "@/components/businesses/BusinessCard"
 import { BusinessFilters } from "@/components/businesses/BusinessFilters"
@@ -48,6 +46,17 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
     ? allCategories.find((c) => c.slug === categorySlug)
     : null
 
+  // Obtener ratings para cada negocio
+  const businessesWithRatings = await Promise.all(
+    allBusinesses.map(async (biz) => {
+      const [averageRating, totalReviews] = await Promise.all([
+        getAverageRating(biz.id),
+        countReviews(biz.id),
+      ])
+      return { ...biz, averageRating, totalReviews }
+    }),
+  )
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       {/* Header */}
@@ -74,15 +83,15 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
 
       {/* Results */}
       <div className="mt-8">
-        {allBusinesses.length > 0 ? (
+        {businessesWithRatings.length > 0 ? (
           <>
             <p className="mb-4 text-sm text-muted-foreground">
-              {allBusinesses.length}{" "}
-              {allBusinesses.length === 1 ? "negocio" : "negocios"}
+              {businessesWithRatings.length}{" "}
+              {businessesWithRatings.length === 1 ? "negocio" : "negocios"}
               {q ? ` para "${q}"` : ""}
             </p>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {allBusinesses.map((biz) => {
+              {businessesWithRatings.map((biz) => {
                 const hours = biz.business_hours ?? []
                 const isOpen = isCurrentlyOpen(hours as any)
                 const hasPromotions = (biz.promotions?.length ?? 0) > 0
@@ -101,6 +110,8 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
                     rating={4.5}
                     isOpen={isOpen}
                     hasPromotions={hasPromotions}
+                    averageRating={biz.averageRating}
+                    totalReviews={biz.totalReviews}
                   />
                 )
               })}

@@ -15,6 +15,8 @@ export interface BusinessCardProps {
   rating: number
   isOpen: boolean
   hasPromotions?: boolean
+  averageRating?: number
+  totalReviews?: number
 }
 
 export function BusinessCard({
@@ -28,6 +30,8 @@ export function BusinessCard({
   isOpen,
   logoUrl,
   hasPromotions,
+  averageRating = 0,
+  totalReviews = 0,
 }: BusinessCardProps) {
   return (
     <Link href={`/businesses/${slug}`} className="group min-w-[260px]">
@@ -65,11 +69,20 @@ export function BusinessCard({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <IconStar className="size-3.5 fill-amber-400 text-amber-400" />
-              <span className="text-xs font-medium">{rating.toFixed(1)}</span>
-            </div>
-            <span className="text-muted-foreground">·</span>
+            {averageRating > 0 && (
+              <>
+                <div className="flex items-center gap-1">
+                  <IconStar className="size-3.5 fill-amber-400 text-amber-400" />
+                  <span className="text-xs font-medium">
+                    {averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({totalReviews})
+                  </span>
+                </div>
+                <span className="text-muted-foreground">·</span>
+              </>
+            )}
             <Badge
               variant={isOpen ? "default" : "secondary"}
               className={

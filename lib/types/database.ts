@@ -444,6 +444,67 @@ export type Database = {
           },
         ]
       }
+      reviews: {
+        Row: {
+          id: string
+          user_id: string
+          business_id: string
+          booking_id: string | null
+          rating: number
+          comment: string
+          owner_reply: string | null
+          owner_replied_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_id: string
+          booking_id?: string | null
+          rating: number
+          comment: string
+          owner_reply?: string | null
+          owner_replied_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_id?: string
+          booking_id?: string | null
+          rating?: number
+          comment?: string
+          owner_reply?: string | null
+          owner_replied_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -467,3 +528,4 @@ export type ProductService = Database["public"]["Tables"]["products_services"]["
 export type Booking = Database["public"]["Tables"]["bookings"]["Row"]
 export type Promotion = Database["public"]["Tables"]["promotions"]["Row"]
 export type Message = Database["public"]["Tables"]["messages"]["Row"]
+export type Review = Database["public"]["Tables"]["reviews"]["Row"]

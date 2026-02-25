@@ -1,7 +1,14 @@
 import { notFound } from "next/navigation"
 import { IconPackage } from "@tabler/icons-react"
 import type { Metadata } from "next"
+import { createClient } from "@/lib/supabase/server"
 import { getBusinessBySlug } from "@/lib/queries/business"
+import {
+  getReviewsByBusiness,
+  getAverageRating,
+  countReviews,
+  canUserReview,
+} from "@/lib/queries/reviews"
 import { BusinessProfile } from "@/components/businesses/BusinessProfile"
 import {
   BusinessHoursDisplay,
@@ -12,6 +19,7 @@ import { ProductGrid } from "@/components/products/ProductGrid"
 import { ContactBusinessButton } from "@/components/businesses/ContactBusinessButton"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { PromotionsSection } from "@/components/businesses/PromotionsSection"
+import { ReviewsSection } from "@/components/businesses/ReviewsSection"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -44,7 +52,7 @@ export default async function BusinessPage({ params }: PageProps) {
 
   const hours = business.business_hours ?? []
   const products = (business.products_services ?? []).filter(
-    (p) => p.is_available
+    (p) => p.is_available,
   )
   const promotions = business.promotions ?? []
   const isOpen = isCurrentlyOpen(hours)
@@ -55,6 +63,35 @@ export default async function BusinessPage({ params }: PageProps) {
     phone: business.phone,
     whatsapp: business.whatsapp,
   }
+
+  // Obtener usuario actual y datos de reviews
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const [
+    { data: reviews },
+    averageRating,
+    totalReviews,
+    userCanReview,
+    userReviewData,
+  ] = await Promise.all([
+    getReviewsByBusiness(business.id),
+    getAverageRating(business.id),
+    countReviews(business.id),
+    user
+      ? canUserReview(user.id, business.id)
+      : Promise.resolve({ canReview: false }),
+    user
+      ? supabase
+          .from("reviews")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("business_id", business.id)
+          .single()
+      : Promise.resolve({ data: null }),
+  ])
 
   return (
     <div className="pb-16">
@@ -75,7 +112,7 @@ export default async function BusinessPage({ params }: PageProps) {
             )}
 
             {/* Products/Services */}
-            <section>
+            <section className="mb-8">
               <h2 className="mb-4 text-lg font-semibold tracking-tight">
                 Productos y servicios
               </h2>
@@ -94,6 +131,20 @@ export default async function BusinessPage({ params }: PageProps) {
                 />
               )}
             </section>
+
+            {/* Reviews */}
+            <ReviewsSection
+              reviews={reviews ?? []}
+              business={{
+                id: business.id,
+                name: business.name,
+                slug: business.slug,
+              }}
+              averageRating={averageRating}
+              totalReviews={totalReviews}
+              canUserReview={userCanReview.canReview}
+              userReview={userReviewData.data}
+            />
           </div>
 
           {/* Sidebar: Contact + Hours */}

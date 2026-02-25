@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { bookingSchema } from "@/lib/validations/booking"
+import { reviewSchema } from "@/lib/validations/review"
+import { canUserReview } from "@/lib/queries/reviews"
 
 export async function createBooking(data: unknown) {
   const supabase = await createClient()
@@ -84,5 +86,166 @@ export async function createBooking(data: unknown) {
   revalidatePath(`/businesses/${business.slug}`)
   revalidatePath("/account/bookings")
   revalidatePath("/dashboard/bookings")
+  return { success: true }
+}
+
+export async function createReview(data: unknown) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "Debes iniciar sesión para dejar una reseña" }
+  }
+
+  const parsed = reviewSchema.safeParse(data)
+  if (!parsed.success) {
+    const fieldErrors = Object.fromEntries(
+      Object.entries(parsed.error.flatten().fieldErrors).map(([k, v]) => [
+        k,
+        v?.[0] ?? "",
+      ]),
+    )
+    return { error: "Datos inválidos", fieldErrors }
+  }
+
+  const { rating, comment, businessId, bookingId } = parsed.data
+
+  // Verificar si puede dejar review
+  const { canReview, reason } = await canUserReview(user.id, businessId)
+  if (!canReview) {
+    return { error: reason ?? "No puedes dejar una reseña en este negocio" }
+  }
+
+  const { error } = await supabase.from("reviews").insert({
+    user_id: user.id,
+    business_id: businessId,
+    booking_id: bookingId,
+    rating,
+    comment,
+  })
+
+  if (error) {
+    console.error("Error creating review:", error)
+    return { error: "No se pudo crear la reseña. Intenta de nuevo." }
+  }
+
+  // Revalidar perfil del negocio
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("slug")
+    .eq("id", businessId)
+    .single()
+
+  if (business) {
+    revalidatePath(`/businesses/${business.slug}`)
+  }
+  revalidatePath("/account/reviews")
+
+  return { success: true }
+}
+
+export async function updateReview(reviewId: string, data: unknown) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "No autorizado" }
+  }
+
+  const parsed = reviewSchema.safeParse(data)
+  if (!parsed.success) {
+    const fieldErrors = Object.fromEntries(
+      Object.entries(parsed.error.flatten().fieldErrors).map(([k, v]) => [
+        k,
+        v?.[0] ?? "",
+      ]),
+    )
+    return { error: "Datos inválidos", fieldErrors }
+  }
+
+  const { rating, comment } = parsed.data
+
+  // Verificar ownership
+  const { data: review } = await supabase
+    .from("reviews")
+    .select("business_id, user_id")
+    .eq("id", reviewId)
+    .single()
+
+  if (!review || review.user_id !== user.id) {
+    return { error: "No tienes permiso para editar esta reseña" }
+  }
+
+  const { error } = await supabase
+    .from("reviews")
+    .update({
+      rating,
+      comment,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", reviewId)
+
+  if (error) {
+    return { error: "No se pudo actualizar la reseña" }
+  }
+
+  // Revalidar
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("slug")
+    .eq("id", review.business_id)
+    .single()
+
+  if (business) {
+    revalidatePath(`/businesses/${business.slug}`)
+  }
+  revalidatePath("/account/reviews")
+
+  return { success: true }
+}
+
+export async function deleteReview(reviewId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "No autorizado" }
+  }
+
+  // Verificar ownership
+  const { data: review } = await supabase
+    .from("reviews")
+    .select("business_id, user_id")
+    .eq("id", reviewId)
+    .single()
+
+  if (!review || review.user_id !== user.id) {
+    return { error: "No tienes permiso para eliminar esta reseña" }
+  }
+
+  const { error } = await supabase.from("reviews").delete().eq("id", reviewId)
+
+  if (error) {
+    return { error: "No se pudo eliminar la reseña" }
+  }
+
+  // Revalidar
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("slug")
+    .eq("id", review.business_id)
+    .single()
+
+  if (business) {
+    revalidatePath(`/businesses/${business.slug}`)
+  }
+  revalidatePath("/account/reviews")
+
   return { success: true }
 }

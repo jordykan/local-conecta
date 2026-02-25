@@ -90,7 +90,7 @@ export function PromotionsCarousel({ promotions, onPromotionClick }: PromotionsC
     <div className="relative">
       {/* Carousel viewport */}
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-4">
+        <div className="flex touch-pan-y flex-nowrap gap-4">
           {promotions.map((promotion) => {
             const discount = formatDiscount(promotion)
 

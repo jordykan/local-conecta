@@ -10,6 +10,7 @@ import {
   IconCalendarEvent,
   IconMessage,
   IconSpeakerphone,
+  IconStar,
   IconArrowLeft,
   IconMenu2,
   IconLogout,
@@ -46,6 +47,7 @@ const navItems: Array<{
   { href: "/dashboard/bookings", label: "Reservas", icon: IconCalendarEvent },
   { href: "/dashboard/messages", label: "Mensajes", icon: IconMessage },
   { href: "/dashboard/promotions", label: "Promociones", icon: IconSpeakerphone },
+  { href: "/dashboard/reviews", label: "Reseñas", icon: IconStar },
 ]
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
