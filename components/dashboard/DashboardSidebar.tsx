@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState, useTransition } from "react"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import {
   IconLayoutDashboard,
   IconPackage,
@@ -14,61 +14,104 @@ import {
   IconArrowLeft,
   IconMenu2,
   IconLogout,
-} from "@tabler/icons-react"
-import { cn } from "@/lib/utils"
-import { logout } from "@/app/(auth)/actions"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+  IconLoader2,
+} from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
+import { logout } from "@/app/(auth)/actions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import type { DashboardUser, DashboardBusiness } from "./types"
+} from "@/components/ui/sheet";
+import type { DashboardUser, DashboardBusiness } from "./types";
 
 interface SidebarProps {
-  business: DashboardBusiness
-  user: DashboardUser
+  business: DashboardBusiness;
+  user: DashboardUser;
 }
 
 const navItems: Array<{
-  href: string
-  label: string
-  icon: typeof IconLayoutDashboard
-  soon?: boolean
+  href: string;
+  label: string;
+  icon: typeof IconLayoutDashboard;
+  soon?: boolean;
 }> = [
   { href: "/dashboard", label: "Vista general", icon: IconLayoutDashboard },
-  { href: "/dashboard/products", label: "Productos y servicios", icon: IconPackage },
+  {
+    href: "/dashboard/products",
+    label: "Productos y servicios",
+    icon: IconPackage,
+  },
   { href: "/dashboard/hours", label: "Horarios", icon: IconClock },
   { href: "/dashboard/bookings", label: "Reservas", icon: IconCalendarEvent },
   { href: "/dashboard/messages", label: "Mensajes", icon: IconMessage },
-  { href: "/dashboard/promotions", label: "Promociones", icon: IconSpeakerphone },
+  {
+    href: "/dashboard/promotions",
+    label: "Promociones",
+    icon: IconSpeakerphone,
+  },
   { href: "/dashboard/reviews", label: "Reseñas", icon: IconStar },
-]
+];
 
-const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const STATUS_MAP: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   active: { label: "Activo", variant: "default" },
   pending: { label: "En revision", variant: "secondary" },
   suspended: { label: "Suspendido", variant: "destructive" },
-}
+};
 
 interface NavContentProps extends SidebarProps {
-  pathname: string
-  onNavigate?: () => void
+  pathname: string;
+  onNavigate?: () => void;
 }
 
 function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
-  const [, startTransition] = useTransition()
-  const status = STATUS_MAP[business.status] ?? STATUS_MAP.pending
+  const [isPending, startTransition] = useTransition();
+  const [loadingHref, setLoadingHref] = useState<string | null>(null);
+  const router = useRouter();
+  const status = STATUS_MAP[business.status] ?? STATUS_MAP.pending;
 
   function handleLogout() {
     startTransition(() => {
-      logout()
-    })
+      logout();
+    });
+  }
+
+  function handleLinkClick(
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+    soon?: boolean,
+  ) {
+    if (soon) return;
+
+    // Ignore modified clicks to let them open in new tab normally
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+
+    if (pathname === href) {
+      if (onNavigate) onNavigate();
+      return;
+    }
+
+    e.preventDefault();
+    setLoadingHref(href);
+
+    startTransition(() => {
+      router.push(href);
+    });
+
+    if (onNavigate) {
+      onNavigate();
+    }
   }
 
   return (
@@ -87,7 +130,10 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
           <p className="truncate text-sm font-semibold text-sidebar-foreground">
             {business.name}
           </p>
-          <Badge variant={status.variant} className="mt-0.5 h-5 px-1.5 text-[12px]">
+          <Badge
+            variant={status.variant}
+            className="mt-0.5 h-5 px-1.5 text-[12px]"
+          >
             {status.label}
           </Badge>
         </div>
@@ -104,7 +150,7 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
-              : pathname.startsWith(item.href)
+              : pathname.startsWith(item.href);
 
           return (
             <div key={item.href} className="relative">
@@ -113,25 +159,32 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
               )}
               <Link
                 href={item.soon ? "#" : item.href}
-                onClick={item.soon ? undefined : onNavigate}
+                onClick={(e) => handleLinkClick(e, item.href, item.soon)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                  item.soon && "pointer-events-none text-sidebar-foreground/35"
+                  item.soon && "pointer-events-none text-sidebar-foreground/35",
                 )}
               >
-                <item.icon className="size-[18px] shrink-0" />
+                {isPending && loadingHref === item.href ? (
+                  <IconLoader2 className="size-[18px] shrink-0 animate-spin" />
+                ) : (
+                  <item.icon className="size-[18px] shrink-0" />
+                )}
                 <span className="flex-1">{item.label}</span>
                 {item.soon && (
-                  <Badge variant="outline" className="ml-auto h-4 border-sidebar-border/60 px-1.5 text-[9px] font-normal text-sidebar-foreground/40">
+                  <Badge
+                    variant="outline"
+                    className="ml-auto h-4 border-sidebar-border/60 px-1.5 text-[9px] font-normal text-sidebar-foreground/40"
+                  >
                     Pronto
                   </Badge>
                 )}
               </Link>
             </div>
-          )
+          );
         })}
       </nav>
 
@@ -157,7 +210,8 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
             <AvatarImage src={user.avatarUrl} alt={user.fullName} />
           ) : null}
           <AvatarFallback className="text-xs">
-            {user.fullName?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+            {user.fullName?.charAt(0)?.toUpperCase() ||
+              user.email.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
@@ -179,11 +233,11 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
         </Button>
       </div>
     </>
-  )
+  );
 }
 
 export function DashboardSidebar({ business, user }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
@@ -197,17 +251,22 @@ export function DashboardSidebar({ business, user }: SidebarProps) {
       </div>
       <NavContent business={business} user={user} pathname={pathname} />
     </aside>
-  )
+  );
 }
 
 export function DashboardMobileNav({ business, user }: SidebarProps) {
-  const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          aria-label="Menu"
+        >
           <IconMenu2 className="size-5" />
         </Button>
       </SheetTrigger>
@@ -227,5 +286,5 @@ export function DashboardMobileNav({ business, user }: SidebarProps) {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

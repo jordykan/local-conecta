@@ -1,38 +1,38 @@
-import { notFound } from "next/navigation"
-import { IconPackage } from "@tabler/icons-react"
-import type { Metadata } from "next"
-import { createClient } from "@/lib/supabase/server"
-import { getBusinessBySlug } from "@/lib/queries/business"
+import { notFound } from "next/navigation";
+import { IconPackage } from "@tabler/icons-react";
+import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { getBusinessBySlug } from "@/lib/queries/business";
 import {
   getReviewsByBusiness,
   getAverageRating,
   countReviews,
   canUserReview,
-} from "@/lib/queries/reviews"
-import { BusinessProfile } from "@/components/businesses/BusinessProfile"
+} from "@/lib/queries/reviews";
+import { BusinessProfile } from "@/components/businesses/BusinessProfile";
 import {
   BusinessHoursDisplay,
   isCurrentlyOpen,
-} from "@/components/businesses/BusinessHoursDisplay"
-import { BusinessContactCard } from "@/components/businesses/BusinessContactCard"
-import { ProductGrid } from "@/components/products/ProductGrid"
-import { ContactBusinessButton } from "@/components/businesses/ContactBusinessButton"
-import { EmptyState } from "@/components/shared/EmptyState"
-import { PromotionsSection } from "@/components/businesses/PromotionsSection"
-import { ReviewsSection } from "@/components/businesses/ReviewsSection"
+} from "@/components/businesses/BusinessHoursDisplay";
+import { BusinessContactCard } from "@/components/businesses/BusinessContactCard";
+import { ProductGrid } from "@/components/products/ProductGrid";
+import { ContactBusinessButton } from "@/components/businesses/ContactBusinessButton";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { PromotionsSection } from "@/components/businesses/PromotionsSection";
+import { ReviewsSection } from "@/components/businesses/ReviewsSection";
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const { data: business } = await getBusinessBySlug(slug)
+  const { slug } = await params;
+  const { data: business } = await getBusinessBySlug(slug);
 
   if (!business) {
-    return { title: "Negocio no encontrado — Local Conecta" }
+    return { title: "Negocio no encontrado — Local Conecta" };
   }
 
   return {
@@ -41,34 +41,36 @@ export async function generateMetadata({
       business.short_description ||
       business.description ||
       `Conoce ${business.name} en Local Conecta`,
-  }
+  };
 }
 
 export default async function BusinessPage({ params }: PageProps) {
-  const { slug } = await params
-  const { data: business } = await getBusinessBySlug(slug)
+  const { slug } = await params;
 
-  if (!business) notFound()
+  // Start both fetches in parallel (async-parallel rule)
+  const supabase = await createClient();
+  const [
+    { data: business },
+    {
+      data: { user },
+    },
+  ] = await Promise.all([getBusinessBySlug(slug), supabase.auth.getUser()]);
 
-  const hours = business.business_hours ?? []
+  if (!business) notFound();
+
+  const hours = business.business_hours ?? [];
   const products = (business.products_services ?? []).filter(
     (p) => p.is_available,
-  )
-  const promotions = business.promotions ?? []
-  const isOpen = isCurrentlyOpen(hours)
+  );
+  const promotions = business.promotions ?? [];
+  const isOpen = isCurrentlyOpen(hours);
 
   const businessInfo = {
     id: business.id,
     name: business.name,
     phone: business.phone,
     whatsapp: business.whatsapp,
-  }
-
-  // Obtener usuario actual y datos de reviews
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  };
 
   const [
     { data: reviews },
@@ -91,7 +93,7 @@ export default async function BusinessPage({ params }: PageProps) {
           .eq("business_id", business.id)
           .single()
       : Promise.resolve({ data: null }),
-  ])
+  ]);
 
   return (
     <div className="pb-16">
@@ -159,5 +161,5 @@ export default async function BusinessPage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

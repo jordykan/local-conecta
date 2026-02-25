@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   IconPackage,
   IconClock,
@@ -7,26 +7,36 @@ import {
   IconPhoto,
   IconArrowRight,
   IconExternalLink,
-} from "@tabler/icons-react"
-import { createClient } from "@/lib/supabase/server"
-import { getBusinessByOwner, getProductsByBusiness } from "@/lib/queries/business"
-import { DAYS_OF_WEEK } from "@/lib/constants"
-import { DashboardShell } from "@/components/dashboard/DashboardShell"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+} from "@tabler/icons-react";
+import { createClient } from "@/lib/supabase/server";
+import {
+  getBusinessByOwner,
+  getProductsByBusiness,
+} from "@/lib/queries/business";
+import { DAYS_OF_WEEK } from "@/lib/constants";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/login");
 
-  const { data: businesses } = await getBusinessByOwner(user.id)
-  const business = businesses?.[0]
-  if (!business) redirect("/register-business")
+  // Start profile fetch early — only needs user.id, not business (async-defer-await rule)
+  const profilePromise = supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
+  const { data: businesses } = await getBusinessByOwner(user.id);
+  const business = businesses?.[0];
+  if (!business) redirect("/register-business");
 
   const [{ data: products }, { data: hoursData }, { data: profile }] =
     await Promise.all([
@@ -36,41 +46,38 @@ export default async function DashboardPage() {
         .select("*")
         .eq("business_id", business.id)
         .order("day_of_week"),
-      supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .single(),
-    ])
+      profilePromise,
+    ]);
 
-  const allProducts = products ?? []
-  const productCount = allProducts.filter((p) => p.type === "product").length
-  const serviceCount = allProducts.filter((p) => p.type === "service").length
-  const recentProducts = allProducts.slice(0, 4)
+  const allProducts = products ?? [];
+  const productCount = allProducts.filter((p) => p.type === "product").length;
+  const serviceCount = allProducts.filter((p) => p.type === "service").length;
+  const recentProducts = allProducts.slice(0, 4);
 
   // Greeting
-  const hour = new Date().getHours()
+  const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? "Buenos dias" : hour < 19 ? "Buenas tardes" : "Buenas noches"
-  const firstName = profile?.full_name?.split(" ")[0] ?? ""
+    hour < 12 ? "Buenos dias" : hour < 19 ? "Buenas tardes" : "Buenas noches";
+  const firstName = profile?.full_name?.split(" ")[0] ?? "";
 
   // Today's hours
-  const today = new Date().getDay()
-  const todayHours = hoursData?.find((h) => h.day_of_week === today)
-  const todayLabel = DAYS_OF_WEEK[today] ?? "Hoy"
+  const today = new Date().getDay();
+  const todayHours = hoursData?.find((h) => h.day_of_week === today);
+  const todayLabel = DAYS_OF_WEEK[today] ?? "Hoy";
   const todaySchedule = todayHours
     ? todayHours.is_closed
       ? "Cerrado"
       : `${todayHours.open_time?.slice(0, 5) ?? "09:00"} – ${todayHours.close_time?.slice(0, 5) ?? "18:00"}`
-    : "Sin configurar"
+    : "Sin configurar";
 
   // Price formatter
   function formatPrice(product: (typeof allProducts)[0]) {
-    if (product.price_type === "quote" || product.price == null) return "A consultar"
-    const formatted = `$${Number(product.price).toLocaleString("es-MX")}`
-    if (product.price_type === "starting_at") return `Desde ${formatted}`
-    if (product.price_type === "per_hour") return `${formatted}/hr`
-    return formatted
+    if (product.price_type === "quote" || product.price == null)
+      return "A consultar";
+    const formatted = `$${Number(product.price).toLocaleString("es-MX")}`;
+    if (product.price_type === "starting_at") return `Desde ${formatted}`;
+    if (product.price_type === "per_hour") return `${formatted}/hr`;
+    return formatted;
   }
 
   return (
@@ -87,7 +94,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Status + Stats */}
-      <div className={`grid gap-4 ${business.status === "pending" ? "lg:grid-cols-[1fr_auto] mt-4" : "mt-4"}`}>
+      <div
+        className={`grid gap-4 ${business.status === "pending" ? "lg:grid-cols-[1fr_auto] mt-4" : "mt-4"}`}
+      >
         {business.status === "pending" && (
           <div className="flex items-center gap-4 rounded-lg border border-amber-200/60 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-950/20">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
@@ -107,7 +116,9 @@ export default async function DashboardPage() {
 
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border border-border/50 px-5 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold tabular-nums">{productCount}</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {productCount}
+            </span>
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground">Productos</span>
               <Link
@@ -122,7 +133,9 @@ export default async function DashboardPage() {
           <Separator orientation="vertical" className="hidden h-8 sm:block" />
 
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold tabular-nums">{serviceCount}</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {serviceCount}
+            </span>
             <span className="text-xs text-muted-foreground">Servicios</span>
           </div>
 
@@ -132,12 +145,14 @@ export default async function DashboardPage() {
             <IconClock className="size-4 text-muted-foreground" />
             <div className="flex flex-col">
               <span className="text-sm font-medium">{todaySchedule}</span>
-              <span className="text-xs text-muted-foreground">{todayLabel}</span>
+              <span className="text-xs text-muted-foreground">
+                {todayLabel}
+              </span>
             </div>
           </div>
         </div>
       </div>
-     
+
       {/* Actions */}
       <section>
         <p className="mb-3 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -203,9 +218,7 @@ export default async function DashboardPage() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {product.name}
-                  </p>
+                  <p className="truncate text-sm font-medium">{product.name}</p>
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="secondary"
@@ -233,5 +246,5 @@ export default async function DashboardPage() {
         )}
       </section>
     </DashboardShell>
-  )
+  );
 }

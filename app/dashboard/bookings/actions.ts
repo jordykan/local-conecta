@@ -1,34 +1,34 @@
-"use server"
+"use server";
 
-import { revalidatePath } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
 async function verifyBusinessOwnership(businessId: string) {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) return { error: "No autenticado." }
+  if (!user) return { supabase, error: "No autenticado." as const };
 
   const { data: business } = await supabase
     .from("businesses")
     .select("id")
     .eq("id", businessId)
     .eq("owner_id", user.id)
-    .single()
+    .single();
 
-  if (!business) return { error: "No tienes permiso para esta acción." }
+  if (!business)
+    return { supabase, error: "No tienes permiso para esta acción." as const };
 
-  return { userId: user.id, businessId: business.id }
+  return { supabase, userId: user.id, businessId: business.id };
 }
 
 export async function confirmBooking(bookingId: string, businessId: string) {
-  const auth = await verifyBusinessOwnership(businessId)
-  if ("error" in auth) return { error: auth.error }
+  const auth = await verifyBusinessOwnership(businessId);
+  if ("error" in auth) return { error: auth.error };
 
-  const supabase = await createClient()
-  const { error } = await supabase
+  const { error } = await auth.supabase
     .from("bookings")
     .update({
       status: "confirmed",
@@ -36,21 +36,20 @@ export async function confirmBooking(bookingId: string, businessId: string) {
     })
     .eq("id", bookingId)
     .eq("business_id", businessId)
-    .eq("status", "pending")
+    .eq("status", "pending");
 
-  if (error) return { error: "No se pudo confirmar la reserva." }
+  if (error) return { error: "No se pudo confirmar la reserva." };
 
-  revalidatePath("/dashboard/bookings")
-  revalidatePath("/account/bookings")
-  return { success: true }
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/account/bookings");
+  return { success: true };
 }
 
 export async function completeBooking(bookingId: string, businessId: string) {
-  const auth = await verifyBusinessOwnership(businessId)
-  if ("error" in auth) return { error: auth.error }
+  const auth = await verifyBusinessOwnership(businessId);
+  if ("error" in auth) return { error: auth.error };
 
-  const supabase = await createClient()
-  const { error } = await supabase
+  const { error } = await auth.supabase
     .from("bookings")
     .update({
       status: "completed",
@@ -58,25 +57,24 @@ export async function completeBooking(bookingId: string, businessId: string) {
     })
     .eq("id", bookingId)
     .eq("business_id", businessId)
-    .eq("status", "confirmed")
+    .eq("status", "confirmed");
 
-  if (error) return { error: "No se pudo completar la reserva." }
+  if (error) return { error: "No se pudo completar la reserva." };
 
-  revalidatePath("/dashboard/bookings")
-  revalidatePath("/account/bookings")
-  return { success: true }
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/account/bookings");
+  return { success: true };
 }
 
 export async function cancelBookingBusiness(
   bookingId: string,
   businessId: string,
-  reason?: string
+  reason?: string,
 ) {
-  const auth = await verifyBusinessOwnership(businessId)
-  if ("error" in auth) return { error: auth.error }
+  const auth = await verifyBusinessOwnership(businessId);
+  if ("error" in auth) return { error: auth.error };
 
-  const supabase = await createClient()
-  const { error } = await supabase
+  const { error } = await auth.supabase
     .from("bookings")
     .update({
       status: "cancelled",
@@ -85,11 +83,11 @@ export async function cancelBookingBusiness(
     })
     .eq("id", bookingId)
     .eq("business_id", businessId)
-    .in("status", ["pending", "confirmed"])
+    .in("status", ["pending", "confirmed"]);
 
-  if (error) return { error: "No se pudo cancelar la reserva." }
+  if (error) return { error: "No se pudo cancelar la reserva." };
 
-  revalidatePath("/dashboard/bookings")
-  revalidatePath("/account/bookings")
-  return { success: true }
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/account/bookings");
+  return { success: true };
 }
