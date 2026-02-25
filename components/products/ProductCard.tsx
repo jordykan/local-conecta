@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { IconEdit, IconTrash, IconPhoto, IconCalendarEvent, IconClock, IconPackage } from "@tabler/icons-react"
+import { IconEdit, IconTrash, IconPhoto, IconCalendarEvent, IconClock, IconPackage, IconInfoCircle } from "@tabler/icons-react"
 import { sileo } from "sileo"
-import type { ProductService } from "@/lib/types/database"
+import type { ProductService, Business } from "@/lib/types/database"
 import { PRICE_TYPE } from "@/lib/constants"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,6 +30,8 @@ interface ProductCardProps {
   editable?: boolean
   onEdit?: (product: ProductService) => void
   onBook?: (product: ProductService) => void
+  businessInfo?: Pick<Business, "id" | "name" | "phone" | "whatsapp">
+  onDetailsClick?: (product: ProductService) => void
 }
 
 function formatPrice(product: ProductService): string {
@@ -41,7 +43,7 @@ function formatPrice(product: ProductService): string {
   return formatted
 }
 
-export function ProductCard({ product, editable, onEdit, onBook }: ProductCardProps) {
+export function ProductCard({ product, editable, onEdit, onBook, businessInfo, onDetailsClick }: ProductCardProps) {
   const [available, setAvailable] = useState(product.is_available)
   const [toggling, startToggle] = useTransition()
   const [deleting, startDelete] = useTransition()
@@ -161,9 +163,27 @@ export function ProductCard({ product, editable, onEdit, onBook }: ProductCardPr
   // ── Public (customer-facing) card ──
   const price = formatPrice(product)
   const isQuote = product.price_type === "quote"
+  const isNonBookable = !product.is_bookable && !!businessInfo
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg">
+    <div
+      className={`group relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg ${
+        isNonBookable ? "cursor-pointer" : ""
+      }`}
+      onClick={isNonBookable ? () => onDetailsClick?.(product) : undefined}
+      role={isNonBookable ? "button" : undefined}
+      tabIndex={isNonBookable ? 0 : undefined}
+      onKeyDown={
+        isNonBookable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                onDetailsClick?.(product)
+              }
+            }
+          : undefined
+      }
+    >
       {/* Image */}
       <div className="relative aspect-[3/2] overflow-hidden bg-muted">
         {product.image_url ? (
@@ -235,6 +255,14 @@ export function ProductCard({ product, editable, onEdit, onBook }: ProductCardPr
             </span>
           )}
         </div>
+
+        {/* Info hint for non-bookable products */}
+        {isNonBookable && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <IconInfoCircle className="size-3.5" />
+            <span>Click para más detalles</span>
+          </div>
+        )}
 
         {/* Book button */}
         {product.is_bookable && onBook && (

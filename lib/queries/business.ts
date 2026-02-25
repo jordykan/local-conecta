@@ -4,27 +4,43 @@ import type {
   Category,
   BusinessHours,
   ProductService,
+  Promotion,
 } from "@/lib/types/database"
 
 export type BusinessWithRelations = Business & {
   categories: Category | null
   business_hours: BusinessHours[]
   products_services: ProductService[]
+  promotions: Promotion[]
 }
 
 export async function getBusinessBySlug(slug: string) {
   const supabase = await createClient()
-  return supabase
+  const now = new Date().toISOString()
+
+  const result = await supabase
     .from("businesses")
     .select(
       `*,
       categories ( id, name, slug, icon ),
       business_hours ( * ),
-      products_services ( * )`
+      products_services ( * ),
+      promotions!promotions_business_id_fkey ( * )`
     )
     .eq("slug", slug)
     .eq("status", "active")
     .single<BusinessWithRelations>()
+
+  // Filter promotions in code to avoid excluding businesses without active promotions
+  if (result.data) {
+    result.data.promotions = (result.data.promotions ?? []).filter(
+      (p) =>
+        p.is_active &&
+        (!p.ends_at || new Date(p.ends_at) > new Date(now))
+    )
+  }
+
+  return result
 }
 
 export async function getBusinessByOwner(ownerId: string) {
@@ -68,20 +84,24 @@ export async function getBusinessHours(businessId: string) {
 export type BusinessDirectoryItem = Business & {
   categories: Pick<Category, "id" | "name" | "slug" | "icon"> | null
   business_hours: Pick<BusinessHours, "day_of_week" | "open_time" | "close_time" | "is_closed">[]
+  promotions: Pick<Promotion, "id" | "is_active" | "ends_at">[]
 }
 
 export async function getBusinessesDirectory(params: {
   q?: string
   categorySlug?: string
+  hasPromotions?: boolean
 }) {
   const supabase = await createClient()
+  const now = new Date().toISOString()
 
   let query = supabase
     .from("businesses")
     .select(
       `*,
       categories ( id, name, slug, icon ),
-      business_hours ( day_of_week, open_time, close_time, is_closed )`
+      business_hours ( day_of_week, open_time, close_time, is_closed ),
+      promotions!promotions_business_id_fkey ( id, is_active, ends_at )`
     )
     .eq("status", "active")
     .order("is_featured", { ascending: false })
@@ -106,5 +126,24 @@ export async function getBusinessesDirectory(params: {
     }
   }
 
-  return query.returns<BusinessDirectoryItem[]>()
+  const result = await query.returns<BusinessDirectoryItem[]>()
+
+  // Filter promotions in code and apply hasPromotions filter
+  if (result.data) {
+    result.data = result.data.map((business) => ({
+      ...business,
+      promotions: (business.promotions ?? []).filter(
+        (p) =>
+          p.is_active &&
+          (!p.ends_at || new Date(p.ends_at) > new Date(now))
+      ),
+    }))
+
+    // If filtering by promotions, only include businesses that have at least one active promotion
+    if (params.hasPromotions) {
+      result.data = result.data.filter((b) => (b.promotions?.length ?? 0) > 0)
+    }
+  }
+
+  return result
 }

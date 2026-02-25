@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { IconPlus } from "@tabler/icons-react"
-import type { ProductService, BusinessHours } from "@/lib/types/database"
+import type { ProductService, BusinessHours, Business } from "@/lib/types/database"
 import { ProductCard } from "./ProductCard"
 import { ProductForm } from "./ProductForm"
+import { ProductDetailsModal } from "./ProductDetailsModal"
 import { BookingModal } from "@/components/bookings/BookingModal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -14,12 +15,14 @@ interface ProductGridProps {
   editable?: boolean
   businessId?: string
   businessHours?: Pick<BusinessHours, "day_of_week" | "open_time" | "close_time" | "is_closed">[]
+  businessInfo?: Pick<Business, "id" | "name" | "phone" | "whatsapp">
 }
 
-export function ProductGrid({ items, editable, businessId, businessHours }: ProductGridProps) {
+export function ProductGrid({ items, editable, businessId, businessHours, businessInfo }: ProductGridProps) {
   const [editingProduct, setEditingProduct] = useState<ProductService | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [bookingProduct, setBookingProduct] = useState<ProductService | null>(null)
+  const [detailsProduct, setDetailsProduct] = useState<ProductService | null>(null)
 
   const products = items.filter((i) => i.type === "product")
   const services = items.filter((i) => i.type === "service")
@@ -45,6 +48,8 @@ export function ProductGrid({ items, editable, businessId, businessHours }: Prod
             editable={editable}
             onEdit={setEditingProduct}
             onBook={canBook ? setBookingProduct : undefined}
+            businessInfo={businessInfo}
+            onDetailsClick={setDetailsProduct}
           />
         ))}
       </div>
@@ -114,6 +119,18 @@ export function ProductGrid({ items, editable, businessId, businessHours }: Prod
           open={!!bookingProduct}
           onOpenChange={(open) => {
             if (!open) setBookingProduct(null)
+          }}
+        />
+      )}
+
+      {/* Product details modal for non-bookable items */}
+      {!editable && detailsProduct && businessInfo && (
+        <ProductDetailsModal
+          product={detailsProduct}
+          business={businessInfo}
+          open={!!detailsProduct}
+          onOpenChange={(open) => {
+            if (!open) setDetailsProduct(null)
           }}
         />
       )}

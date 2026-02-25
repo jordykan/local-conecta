@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { IconFilter, IconX } from "@tabler/icons-react"
+import { IconFilter, IconX, IconTag } from "@tabler/icons-react"
 import type { Category } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 
 interface BusinessFiltersProps {
   categories: Category[]
@@ -23,7 +24,8 @@ export function BusinessFilters({ categories }: BusinessFiltersProps) {
 
   const currentCategory = searchParams.get("category") ?? ""
   const currentQuery = searchParams.get("q") ?? ""
-  const hasFilters = currentCategory || currentQuery
+  const hasPromotions = searchParams.get("promotions") === "true"
+  const hasFilters = currentCategory || currentQuery || hasPromotions
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -62,6 +64,16 @@ export function BusinessFilters({ categories }: BusinessFiltersProps) {
           ))}
         </SelectContent>
       </Select>
+
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5">
+        <IconTag className="size-4 text-primary" />
+        <span className="text-sm">Con promociones</span>
+        <Switch
+          checked={hasPromotions}
+          onCheckedChange={(checked) => updateParam("promotions", checked ? "true" : "")}
+          className="scale-75"
+        />
+      </div>
 
       {hasFilters && (
         <Button

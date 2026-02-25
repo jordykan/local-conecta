@@ -11,6 +11,7 @@ import { BusinessContactCard } from "@/components/businesses/BusinessContactCard
 import { ProductGrid } from "@/components/products/ProductGrid"
 import { ContactBusinessButton } from "@/components/businesses/ContactBusinessButton"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { PromotionsSection } from "@/components/businesses/PromotionsSection"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -45,7 +46,15 @@ export default async function BusinessPage({ params }: PageProps) {
   const products = (business.products_services ?? []).filter(
     (p) => p.is_available
   )
+  const promotions = business.promotions ?? []
   const isOpen = isCurrentlyOpen(hours)
+
+  const businessInfo = {
+    id: business.id,
+    name: business.name,
+    phone: business.phone,
+    whatsapp: business.whatsapp,
+  }
 
   return (
     <div className="pb-16">
@@ -55,25 +64,37 @@ export default async function BusinessPage({ params }: PageProps) {
       {/* Content */}
       <div className="mx-auto mt-8 max-w-5xl px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          {/* Main: Products/Services */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold tracking-tight">
-              Productos y servicios
-            </h2>
-            {products.length > 0 ? (
-              <ProductGrid
-                items={products}
-                businessId={business.id}
-                businessHours={hours}
-              />
-            ) : (
-              <EmptyState
-                icon={IconPackage}
-                title="Sin productos disponibles"
-                description="Este negocio aun no ha publicado productos o servicios."
+          {/* Main: Promotions + Products/Services */}
+          <div>
+            {/* Promotions */}
+            {promotions.length > 0 && (
+              <PromotionsSection
+                promotions={promotions}
+                businessInfo={businessInfo}
               />
             )}
-          </section>
+
+            {/* Products/Services */}
+            <section>
+              <h2 className="mb-4 text-lg font-semibold tracking-tight">
+                Productos y servicios
+              </h2>
+              {products.length > 0 ? (
+                <ProductGrid
+                  items={products}
+                  businessId={business.id}
+                  businessHours={hours}
+                  businessInfo={businessInfo}
+                />
+              ) : (
+                <EmptyState
+                  icon={IconPackage}
+                  title="Sin productos disponibles"
+                  description="Este negocio aun no ha publicado productos o servicios."
+                />
+              )}
+            </section>
+          </div>
 
           {/* Sidebar: Contact + Hours */}
           <aside className="space-y-5">

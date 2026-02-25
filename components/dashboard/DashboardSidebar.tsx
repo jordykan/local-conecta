@@ -34,13 +34,18 @@ interface SidebarProps {
   user: DashboardUser
 }
 
-const navItems = [
+const navItems: Array<{
+  href: string
+  label: string
+  icon: typeof IconLayoutDashboard
+  soon?: boolean
+}> = [
   { href: "/dashboard", label: "Vista general", icon: IconLayoutDashboard },
   { href: "/dashboard/products", label: "Productos y servicios", icon: IconPackage },
   { href: "/dashboard/hours", label: "Horarios", icon: IconClock },
   { href: "/dashboard/bookings", label: "Reservas", icon: IconCalendarEvent },
   { href: "/dashboard/messages", label: "Mensajes", icon: IconMessage },
-  { href: "/dashboard/promotions", label: "Promociones", icon: IconSpeakerphone, soon: true },
+  { href: "/dashboard/promotions", label: "Promociones", icon: IconSpeakerphone },
 ]
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { IconStar, IconMapPin } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { PromotionBadge } from "./PromotionBadge"
 
 export interface BusinessCardProps {
   slug: string
@@ -13,6 +14,7 @@ export interface BusinessCardProps {
   logoUrl?: string
   rating: number
   isOpen: boolean
+  hasPromotions?: boolean
 }
 
 export function BusinessCard({
@@ -25,6 +27,7 @@ export function BusinessCard({
   rating,
   isOpen,
   logoUrl,
+  hasPromotions,
 }: BusinessCardProps) {
   return (
     <Link href={`/businesses/${slug}`} className="group min-w-[260px]">
@@ -46,6 +49,9 @@ export function BusinessCard({
             >
               <IconMapPin className="size-10 text-primary/30" stroke={1.5} />
             </div>
+          )}
+          {hasPromotions && (
+            <PromotionBadge className="absolute left-3 top-3" />
           )}
         </div>
 

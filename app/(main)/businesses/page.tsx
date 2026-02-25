@@ -22,16 +22,21 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; category?: string }>
+  searchParams: Promise<{ q?: string; category?: string; promotions?: string }>
 }
 
 export default async function BusinessesPage({ searchParams }: PageProps) {
   const params = await searchParams
   const q = params.q?.trim() ?? ""
   const categorySlug = params.category ?? ""
+  const hasPromotionsFilter = params.promotions === "true"
 
   const [{ data: businesses }, { data: categories }] = await Promise.all([
-    getBusinessesDirectory({ q: q || undefined, categorySlug: categorySlug || undefined }),
+    getBusinessesDirectory({
+      q: q || undefined,
+      categorySlug: categorySlug || undefined,
+      hasPromotions: hasPromotionsFilter || undefined,
+    }),
     getCategories(),
   ])
 
@@ -80,6 +85,7 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
               {allBusinesses.map((biz) => {
                 const hours = biz.business_hours ?? []
                 const isOpen = isCurrentlyOpen(hours as any)
+                const hasPromotions = (biz.promotions?.length ?? 0) > 0
 
                 return (
                   <BusinessCard
@@ -94,6 +100,7 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
                     logoUrl={biz.logo_url ?? undefined}
                     rating={4.5}
                     isOpen={isOpen}
+                    hasPromotions={hasPromotions}
                   />
                 )
               })}
