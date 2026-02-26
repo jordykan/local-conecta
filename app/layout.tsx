@@ -7,6 +7,7 @@ import { RealtimeProvider } from "@/lib/contexts/RealtimeContext";
 import NextTopLoader from "nextjs-toploader";
 import { PWAInitializer } from "@/components/PWAInitializer";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -73,6 +74,7 @@ export default function RootLayout({
             <PWAInitializer />
             {children}
             <InstallPrompt />
+            <PushNotificationManager />
             <Toaster closeButton={true} position="top-right" richColors={true} />
           </RealtimeProvider>
         </ThemeProvider>
