@@ -165,10 +165,8 @@ serve(async (req) => {
     )
 
     const successCount = results.filter(r => r.success).length
-    console.log(`[Edge Function] Notifications sent: ${successCount}/${subs.length} successful`)
-
-    const successCount = results.filter(r => r.success).length
     const failedCount = results.length - successCount
+    console.log(`[Edge Function] Notifications sent: ${successCount}/${subs.length} successful`)
 
     return new Response(
       JSON.stringify({
