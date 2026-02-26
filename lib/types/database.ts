@@ -600,6 +600,14 @@ export type Database = {
         Args: { b_id: string }
         Returns: boolean
       }
+      get_unread_count: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
+      get_business_unread_count: {
+        Args: { business_uuid: string }
+        Returns: number
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

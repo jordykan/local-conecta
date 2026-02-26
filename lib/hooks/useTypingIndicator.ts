@@ -26,7 +26,7 @@ export function useTypingIndicator({
   const { supabase, isConnected } = useRealtimeContext()
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Subscribe to typing events
   useEffect(() => {
