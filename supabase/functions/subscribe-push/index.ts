@@ -26,18 +26,16 @@ serve(async (req) => {
     console.log('[Subscribe] Request received')
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       console.error('[Subscribe] Supabase config missing')
       throw new Error('Supabase configuration missing')
     }
 
-    // Create admin client to verify JWT
-    const supabaseAdmin = createClient(supabaseUrl, supabaseKey)
-
-    // Get JWT from Authorization header
-    const authHeader = req.headers.get('Authorization')
+    // Get Authorization header (try both cases)
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
     console.log('[Subscribe] Auth header present:', !!authHeader)
 
     if (!authHeader) {
@@ -48,28 +46,21 @@ serve(async (req) => {
       )
     }
 
-    // Extract token from "Bearer <token>"
-    const token = authHeader.replace('Bearer ', '')
-    console.log('[Subscribe] Token length:', token.length)
+    // Create client with user's JWT for auth verification
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    })
 
-    // Verify JWT and get user
-    console.log('[Subscribe] Verifying JWT...')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    // Verify user authentication
+    console.log('[Subscribe] Verifying user...')
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 
-    if (authError) {
-      console.error('[Subscribe] Auth error details:', {
-        message: authError.message,
-        status: authError.status,
-        name: authError.name
-      })
-      return new Response(
-        JSON.stringify({ error: 'Usuario no autenticado', details: authError.message }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (!user) {
-      console.error('[Subscribe] No user returned from auth.getUser()')
+    if (authError || !user) {
+      console.error('[Subscribe] Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Usuario no autenticado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -90,6 +81,9 @@ serve(async (req) => {
     }
 
     console.log('[Subscribe] Saving subscription for user:', user.id)
+
+    // Use service role client for database operations (bypasses RLS)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
     // Check if subscription already exists
     // Note: We can't easily query JSONB fields with Supabase JS client,
