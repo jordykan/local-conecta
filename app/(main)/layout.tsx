@@ -32,22 +32,17 @@ export default async function MainLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar user={navUser} />
-
-      {/* Banner temporal para pruebas de notificaciones */}
-      <div className="bg-orange-100 dark:bg-orange-950 border-b border-orange-200 dark:border-orange-900">
-        <div className="container mx-auto px-4 py-3">
-          <Link
-            href="/test-notifications"
-            className="flex items-center gap-2 text-sm text-orange-900 dark:text-orange-100 hover:underline"
-          >
-            <IconBell className="h-4 w-4" />
-            <span className="font-medium">Prueba notificaciones push →</span>
-          </Link>
-        </div>
-      </div>
-
       <main className="flex-1">{children}</main>
       <Footer />
+
+      {/* Botón flotante temporal para pruebas de notificaciones */}
+      <Link
+        href="/test-notifications"
+        className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 rounded-full bg-orange-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-orange-700 transition-colors"
+      >
+        <IconBell className="h-5 w-5" />
+        <span>Test Push</span>
+      </Link>
     </div>
   )
 }
