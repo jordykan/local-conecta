@@ -6,7 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('=====> FUNCTION STARTED')
+  console.log('=====> FUNCTION STARTED v10')
   console.log('=====> Method:', req.method)
   console.log('=====> URL:', req.url)
 
