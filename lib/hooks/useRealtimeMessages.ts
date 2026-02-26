@@ -27,7 +27,15 @@ export function useRealtimeMessages({
 
   // Subscribe to new messages
   useEffect(() => {
-    if (!isConnected || !conversationId) return
+    if (!isConnected || !conversationId) {
+      console.log("[useRealtimeMessages] Not connected or no conversationId", {
+        isConnected,
+        conversationId,
+      })
+      return
+    }
+
+    console.log("[useRealtimeMessages] Subscribing to conversation:", conversationId)
 
     const messageChannel = supabase
       .channel(`conversation:${conversationId}`)
@@ -40,6 +48,7 @@ export function useRealtimeMessages({
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
+          console.log("[useRealtimeMessages] New message received:", payload)
           // Fetch the full message with profile data
           const { data: fullMessage } = await supabase
             .from("messages")
@@ -51,6 +60,7 @@ export function useRealtimeMessages({
             .single()
 
           if (fullMessage) {
+            console.log("[useRealtimeMessages] Full message fetched:", fullMessage)
             const newMessage = fullMessage as MessageWithSender
             setMessages((prev) => [...prev, newMessage])
             onNewMessage?.(newMessage)
@@ -66,6 +76,7 @@ export function useRealtimeMessages({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          console.log("[useRealtimeMessages] Message updated:", payload)
           // Update message (e.g., when marked as read)
           setMessages((prev) =>
             prev.map((msg) =>
@@ -76,7 +87,9 @@ export function useRealtimeMessages({
           )
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log("[useRealtimeMessages] Subscription status:", status)
+      })
 
     setChannel(messageChannel)
 

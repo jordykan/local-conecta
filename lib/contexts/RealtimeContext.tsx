@@ -22,27 +22,34 @@ const RealtimeContext = createContext<RealtimeContextType | undefined>(
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient())
-  const [isConnected, setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(true) // Assume connected by default
 
   useEffect(() => {
-    // Monitor connection status
-    const channel = supabase.channel("system")
+    // Log Realtime connection info
+    console.log("[Realtime] Provider initialized")
 
-    channel
-      .on("system", { event: "*" }, () => {
-        setIsConnected(true)
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
+    // Simple connection check
+    const checkConnection = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id")
+          .limit(1)
+
+        if (!error) {
+          console.log("[Realtime] Supabase client connected")
           setIsConnected(true)
-        } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+        } else {
+          console.error("[Realtime] Connection error:", error)
           setIsConnected(false)
         }
-      })
-
-    return () => {
-      supabase.removeChannel(channel)
+      } catch (err) {
+        console.error("[Realtime] Connection check failed:", err)
+        setIsConnected(false)
+      }
     }
+
+    checkConnection()
   }, [supabase])
 
   return (

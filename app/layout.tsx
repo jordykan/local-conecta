@@ -5,6 +5,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RealtimeProvider } from "@/lib/contexts/RealtimeContext";
 import NextTopLoader from "nextjs-toploader";
+import { PWAInitializer } from "@/components/PWAInitializer";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -22,6 +24,18 @@ export const metadata: Metadata = {
   title: "Local Conecta — Descubre negocios locales",
   description:
     "Encuentra, aparta y conecta con negocios locales de tu comunidad. Explora el directorio, descubre promociones y apoya lo local.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Local Conecta",
+  },
+  applicationName: "Local Conecta",
+  keywords: ["negocios locales", "reservas", "servicios", "productos", "comunidad"],
+  authors: [{ name: "Local Conecta" }],
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 // Prevent iOS Safari from zooming the page when virtual keyboard opens/closes.
@@ -33,6 +47,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
+  themeColor: "#ea580c",
 };
 
 export default function RootLayout({
@@ -55,7 +70,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <RealtimeProvider>
+            <PWAInitializer />
             {children}
+            <InstallPrompt />
             <Toaster closeButton={true} position="top-right" richColors={true} />
           </RealtimeProvider>
         </ThemeProvider>

@@ -593,6 +593,81 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          subscription: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subscription: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          subscription?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          notify_new_booking: boolean
+          notify_new_message: boolean
+          notify_new_review: boolean
+          notify_booking_confirmed: boolean
+          notify_booking_cancelled: boolean
+          notify_review_response: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          notify_new_booking?: boolean
+          notify_new_message?: boolean
+          notify_new_review?: boolean
+          notify_booking_confirmed?: boolean
+          notify_booking_cancelled?: boolean
+          notify_review_response?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          notify_new_booking?: boolean
+          notify_new_message?: boolean
+          notify_new_review?: boolean
+          notify_booking_confirmed?: boolean
+          notify_booking_cancelled?: boolean
+          notify_review_response?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -627,3 +702,5 @@ export type Message = Database["public"]["Tables"]["messages"]["Row"]
 export type Review = Database["public"]["Tables"]["reviews"]["Row"]
 export type Favorite = Database["public"]["Tables"]["favorites"]["Row"]
 export type ProfileView = Database["public"]["Tables"]["profile_views"]["Row"]
+export type PushSubscription = Database["public"]["Tables"]["push_subscriptions"]["Row"]
+export type NotificationPreferences = Database["public"]["Tables"]["notification_preferences"]["Row"]
