@@ -46,9 +46,13 @@ export function AdminCategoryList({ categories }: AdminCategoryListProps) {
     startTransition(async () => {
       const result = await deleteCategory(categoryToDelete.id);
       if (result.success) {
-        toast.success("Categoría eliminada");
+        toast.success("Categoría eliminada", {
+          description: "La categoría ha sido removida del sistema"
+        });
       } else {
-        toast.error(result.error ?? "Error al eliminar la categoría");
+        toast.error("Error al eliminar", {
+          description: result.error ?? "No se pudo eliminar la categoría"
+        });
       }
       setDeletingId(null);
       setCategoryToDelete(null);

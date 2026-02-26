@@ -57,7 +57,9 @@ export function BookingCard({ booking }: BookingCardProps) {
 
   function handleCancel() {
     if (!reason.trim()) {
-      toast.error("Indica el motivo de la cancelación")
+      toast.error("Campo requerido", {
+        description: "Indica el motivo de la cancelación para continuar"
+      })
       return
     }
 
@@ -65,9 +67,13 @@ export function BookingCard({ booking }: BookingCardProps) {
       const result = await cancelBooking(booking.id, reason.trim())
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al cancelar", {
+          description: result.error
+        })
       } else {
-        toast.success("Apartado cancelado")
+        toast.success("Apartado cancelado", {
+          description: "El negocio ha sido notificado de la cancelación"
+        })
         setDialogOpen(false)
         setReason("")
       }

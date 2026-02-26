@@ -21,10 +21,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
+import { UnreadBadge } from "@/components/shared/UnreadBadge"
+import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
 import { logout } from "@/app/(auth)/actions"
 
 interface NavbarProps {
   user?: {
+    id: string
     email: string
     fullName: string
     avatarUrl?: string | null
@@ -79,6 +82,12 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname()
   const isHome = pathname === "/"
   const transparent = isHome
+
+  // Get unread message count
+  const { count: unreadCount } = useUnreadCount({
+    userId: user?.id ?? "",
+    businessId: user?.role === "business_owner" ? undefined : undefined, // TODO: Get business ID if owner
+  })
 
   return (
     <header
@@ -166,9 +175,12 @@ export function Navbar({ user }: NavbarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/account/messages" className="flex items-center gap-2.5 px-3 py-2">
-                    <IconMessageCircle className="size-4 text-muted-foreground" />
-                    Mis mensajes
+                  <Link href="/account/messages" className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-2.5">
+                      <IconMessageCircle className="size-4 text-muted-foreground" />
+                      Mis mensajes
+                    </div>
+                    {unreadCount > 0 && <UnreadBadge count={unreadCount} size="sm" />}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -285,10 +297,13 @@ export function Navbar({ user }: NavbarProps) {
                   <SheetClose asChild>
                     <Link
                       href="/account/messages"
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     >
-                      <IconMessageCircle className="size-4" />
-                      Mis mensajes
+                      <div className="flex items-center gap-2.5">
+                        <IconMessageCircle className="size-4" />
+                        Mis mensajes
+                      </div>
+                      {unreadCount > 0 && <UnreadBadge count={unreadCount} size="sm" />}
                     </Link>
                   </SheetClose>
                   <Separator className="my-2" />

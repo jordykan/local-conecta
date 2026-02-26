@@ -418,6 +418,7 @@ export type Database = {
           business_id: string
           content: string
           is_read: boolean
+          read_at: string | null
           created_at: string
         }
         Insert: {
@@ -427,11 +428,13 @@ export type Database = {
           business_id: string
           content: string
           is_read?: boolean
+          read_at?: string | null
           created_at?: string
         }
         Update: {
           content?: string
           is_read?: boolean
+          read_at?: string | null
         }
         Relationships: [
           {

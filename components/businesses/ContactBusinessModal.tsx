@@ -46,7 +46,9 @@ export function ContactBusinessModal({
       )
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al enviar mensaje", {
+          description: result.error
+        })
       } else {
         setSuccess(true)
       }

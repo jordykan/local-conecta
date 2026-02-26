@@ -24,6 +24,13 @@ export default async function ConversationPage({
 
   if (!user) redirect("/login")
 
+  // Get user profile for full name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
   const { data: messages, business } = await getMessagesByConversation(
     conversationId,
     user.id
@@ -63,10 +70,11 @@ export default async function ConversationPage({
 
       {/* Thread */}
       <MessageThread
-        messages={messages}
+        initialMessages={messages}
         conversationId={conversationId}
         businessId={business.id}
         currentUserId={user.id}
+        currentUserName={profile?.full_name || "Usuario"}
       />
     </div>
   )

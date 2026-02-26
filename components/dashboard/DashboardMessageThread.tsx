@@ -10,26 +10,49 @@ import type { MessageWithSender } from "@/lib/queries/messages"
 import { replyAsBusinessOwner } from "@/app/dashboard/messages/actions"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { TypingIndicator } from "@/components/shared/TypingIndicator"
+import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages"
+import { useTypingIndicator } from "@/lib/hooks/useTypingIndicator"
 import { cn } from "@/lib/utils"
 
 interface DashboardMessageThreadProps {
-  messages: MessageWithSender[]
+  initialMessages: MessageWithSender[]
   conversationId: string
   businessId: string
   currentUserId: string
+  currentUserName: string
   userName: string
 }
 
 export function DashboardMessageThread({
-  messages,
+  initialMessages,
   conversationId,
   businessId,
   currentUserId,
+  currentUserName,
   userName,
 }: DashboardMessageThreadProps) {
   const [content, setContent] = useState("")
   const [pending, startTransition] = useTransition()
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Use Realtime hooks
+  const { messages, markAllAsRead } = useRealtimeMessages({
+    conversationId,
+    initialMessages,
+    onNewMessage: (newMessage) => {
+      // Mark as read if message is not from current user (business owner)
+      if (newMessage.sender_id !== currentUserId) {
+        markAllAsRead(currentUserId)
+      }
+    },
+  })
+
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator({
+    conversationId,
+    currentUserId,
+    currentUserName,
+  })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -38,6 +61,8 @@ export function DashboardMessageThread({
   function handleSend() {
     if (!content.trim()) return
 
+    stopTyping() // Stop typing indicator
+
     startTransition(async () => {
       const result = await replyAsBusinessOwner(
         conversationId,
@@ -45,7 +70,9 @@ export function DashboardMessageThread({
         content
       )
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al enviar mensaje", {
+          description: result.error
+        })
       } else {
         setContent("")
       }
@@ -58,6 +85,22 @@ export function DashboardMessageThread({
       handleSend()
     }
   }
+
+  function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setContent(e.target.value)
+    if (e.target.value.trim()) {
+      startTyping()
+    } else {
+      stopTyping()
+    }
+  }
+
+  // Stop typing when component unmounts
+  useEffect(() => {
+    return () => {
+      stopTyping()
+    }
+  }, [stopTyping])
 
   return (
     <div className="flex flex-col">
@@ -101,6 +144,8 @@ export function DashboardMessageThread({
             </div>
           )
         })}
+        {/* Typing Indicator */}
+        <TypingIndicator typingUsers={typingUsers} />
         <div ref={bottomRef} />
       </div>
 
@@ -108,7 +153,7 @@ export function DashboardMessageThread({
       <div className="flex gap-2">
         <Textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           onKeyDown={handleKeyDown}
           placeholder={`Responder a ${userName}...`}
           rows={2}

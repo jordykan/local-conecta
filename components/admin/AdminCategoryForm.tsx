@@ -38,13 +38,19 @@ export function AdminCategoryForm({ category, children }: AdminCategoryFormProps
       console.log("Resultado:", result)
 
       if (result.success) {
-        toast.success(category ? "Categoría actualizada" : "Categoría creada")
+        toast.success(category ? "Categoría actualizada" : "Categoría creada", {
+          description: category
+            ? "Los cambios han sido guardados"
+            : "La categoría está disponible para asignar a negocios"
+        })
         setOpen(false)
         if (!category) {
           setFormData({ name: "", slug: "", icon: null, sort_order: 0 })
         }
       } else {
-        toast.error(result.error ?? "Error al guardar la categoría")
+        toast.error(category ? "Error al actualizar" : "Error al crear", {
+          description: result.error ?? "No se pudo guardar la categoría"
+        })
       }
     })
   }

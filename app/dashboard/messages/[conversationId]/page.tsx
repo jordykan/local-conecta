@@ -22,6 +22,13 @@ export default async function DashboardConversationPage({ params }: PageProps) {
   const business = businesses?.[0]
   if (!business) redirect("/register-business")
 
+  // Get business owner profile for full name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
   const { data: messages, user: conversationUser } =
     await getMessagesByConversationForBusiness(conversationId, business.id)
 
@@ -30,10 +37,11 @@ export default async function DashboardConversationPage({ params }: PageProps) {
   return (
     <DashboardShell description={`Conversación con ${conversationUser?.full_name || "Cliente"}`}>
       <DashboardMessageThread
-        messages={messages}
+        initialMessages={messages}
         conversationId={conversationId}
         businessId={business.id}
         currentUserId={user.id}
+        currentUserName={profile?.full_name || business.name || "Negocio"}
         userName={conversationUser?.full_name || "Cliente"}
       />
     </DashboardShell>

@@ -54,7 +54,9 @@ export function ProductCard({ product, editable, onEdit, onBook, businessInfo, o
       const result = await toggleProductAvailability(product.id, checked)
       if (result?.error) {
         setAvailable(!checked)
-        toast.error(result.error)
+        toast.error("Error al actualizar", {
+          description: result.error
+        })
       }
     })
   }
@@ -63,9 +65,13 @@ export function ProductCard({ product, editable, onEdit, onBook, businessInfo, o
     startDelete(async () => {
       const result = await deleteProduct(product.id)
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al eliminar", {
+          description: result.error
+        })
       } else {
-        toast.success("Producto eliminado")
+        toast.success("Producto eliminado", {
+          description: "El producto ha sido removido de tu catálogo"
+        })
       }
     })
   }

@@ -88,9 +88,13 @@ export default function HoursPage() {
     startTransition(async () => {
       const result = await updateBusinessHours(businessId, hours)
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al guardar horarios", {
+          description: result.error
+        })
       } else {
-        toast.success("Horarios guardados")
+        toast.success("Horarios guardados", {
+          description: "Tus horarios han sido actualizados correctamente"
+        })
       }
     })
   }

@@ -19,6 +19,7 @@ export default async function MainLayout({
       .single<{ full_name: string; avatar_url: string | null; role: string }>()
 
     navUser = {
+      id: user.id,
       email: user.email!,
       fullName: profile?.full_name ?? "",
       avatarUrl: profile?.avatar_url,

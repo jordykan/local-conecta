@@ -104,7 +104,9 @@ export function ProductForm({
 
       setImageUrl(urlData.publicUrl)
     } catch {
-      toast.error("Error al subir imagen")
+      toast.error("Error al subir imagen", {
+        description: "No se pudo cargar la imagen. Intenta de nuevo"
+      })
       setImagePreview(product?.image_url ?? "")
       setImageUrl(product?.image_url ?? "")
     } finally {
@@ -151,9 +153,13 @@ export function ProductForm({
         : await createProduct(businessId, data)
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error(isEdit ? "Error al actualizar" : "Error al crear", {
+          description: result.error
+        })
       } else {
-        toast.success(isEdit ? "Producto actualizado" : "Producto creado")
+        toast.success(isEdit ? "Producto actualizado" : "Producto creado", {
+          description: isEdit ? "Los cambios han sido guardados" : "El producto está visible en tu catálogo"
+        })
         onOpenChange(false)
         if (!isEdit) {
           setName("")

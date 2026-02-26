@@ -53,10 +53,16 @@ export function ReviewForm({
         if (result.fieldErrors) {
           setErrors(result.fieldErrors)
         } else {
-          toast.error(result.error)
+          toast.error(isEdit ? "Error al actualizar" : "Error al publicar", {
+            description: result.error
+          })
         }
       } else {
-        toast.success(isEdit ? "Reseña actualizada" : "Reseña publicada")
+        toast.success(isEdit ? "Reseña actualizada" : "Reseña publicada", {
+          description: isEdit
+            ? "Tus cambios han sido guardados"
+            : "Tu reseña es visible para todos los usuarios"
+        })
         onOpenChange(false)
         if (!isEdit) {
           setRating(0)

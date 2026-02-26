@@ -57,15 +57,22 @@ function LoginForm() {
       shownAuthError.current = true;
       toast.error(
         authError === "google"
-          ? "No se pudo conectar con Google. Intenta de nuevo."
-          : "Error al iniciar sesión. Intenta de nuevo."
+          ? "Error de autenticación"
+          : "Error al iniciar sesión",
+        {
+          description: authError === "google"
+            ? "No se pudo conectar con Google. Intenta de nuevo"
+            : "Verifica tus credenciales e intenta de nuevo"
+        }
       );
     }
   }, [authError]);
 
   useEffect(() => {
     if (state?.error) {
-      toast.error(state.error);
+      toast.error("Error al iniciar sesión", {
+        description: state.error
+      });
     }
   }, [state]);
 

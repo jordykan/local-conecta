@@ -100,10 +100,14 @@ export function BusinessRegistrationWizard({
     startTransition(async () => {
       const result = await registerBusiness(data)
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al registrar negocio", {
+          description: result.error
+        })
         return
       }
-      toast.success("Negocio registrado correctamente")
+      toast.success("Negocio registrado", {
+        description: "Tu negocio está en revisión. Te notificaremos cuando sea aprobado"
+      })
       router.push("/dashboard")
     })
   }

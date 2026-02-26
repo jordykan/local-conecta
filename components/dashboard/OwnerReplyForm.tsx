@@ -40,9 +40,13 @@ export function OwnerReplyForm({
       })
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al publicar respuesta", {
+          description: result.error
+        })
       } else {
-        toast.success("Respuesta publicada")
+        toast.success("Respuesta publicada", {
+          description: "Tu respuesta es visible para todos los usuarios"
+        })
         onOpenChange(false)
       }
     })
@@ -53,9 +57,13 @@ export function OwnerReplyForm({
       const result = await deleteOwnerReply(review.id)
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al eliminar respuesta", {
+          description: result.error
+        })
       } else {
-        toast.success("Respuesta eliminada")
+        toast.success("Respuesta eliminada", {
+          description: "La respuesta ha sido removida de la reseña"
+        })
         setOwnerReply("")
         onOpenChange(false)
       }

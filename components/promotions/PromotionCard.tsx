@@ -71,7 +71,9 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
 
   function handleToggle(checked: boolean) {
     if (expired) {
-      toast.error("No puedes activar una promoción que ya expiró")
+      toast.error("Promoción expirada", {
+        description: "No puedes activar una promoción que ya expiró"
+      })
       return
     }
 
@@ -80,7 +82,9 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
       const result = await togglePromotionStatus(promotion.id, checked)
       if (result?.error) {
         setActive(!checked)
-        toast.error(result.error)
+        toast.error("Error al actualizar", {
+          description: result.error
+        })
       }
     })
   }
@@ -89,9 +93,13 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
     startDelete(async () => {
       const result = await deletePromotion(promotion.id)
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al eliminar", {
+          description: result.error
+        })
       } else {
-        toast.success("Promoción eliminada")
+        toast.success("Promoción eliminada", {
+          description: "La promoción ha sido removida"
+        })
       }
     })
   }

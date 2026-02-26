@@ -49,7 +49,9 @@ export function FavoriteButton({
       clearTimeout(timeoutId)
 
       if (result?.success === false || result?.error) {
-        toast.error(result.error || "No se pudo completar la acción")
+        toast.error("Error al actualizar favoritos", {
+          description: result.error || "No se pudo completar la acción"
+        })
         return
       }
 
@@ -58,12 +60,19 @@ export function FavoriteButton({
         toast.success(
           result.action === "added"
             ? "Agregado a favoritos"
-            : "Quitado de favoritos"
+            : "Quitado de favoritos",
+          {
+            description: result.action === "added"
+              ? "El negocio se guardó en tu lista de favoritos"
+              : "El negocio se quitó de tu lista de favoritos"
+          }
         )
       }
     } catch (error) {
       clearTimeout(timeoutId)
-      toast.error("Ocurrió un error inesperado")
+      toast.error("Error inesperado", {
+        description: "Ocurrió un error al actualizar tus favoritos"
+      })
     } finally {
       setPending(false)
     }

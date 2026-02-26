@@ -52,7 +52,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (state?.error) {
-      toast.error(state.error);
+      toast.error("Error al registrarte", {
+        description: state.error
+      });
     }
   }, [state]);
 

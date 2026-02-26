@@ -65,9 +65,13 @@ export function ProfileForm({
       const result = await updateProfile(parsed.data)
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al actualizar", {
+          description: result.error
+        })
       } else {
-        toast.success("Perfil actualizado")
+        toast.success("Perfil actualizado", {
+          description: "Tus cambios han sido guardados correctamente"
+        })
       }
     })
   }

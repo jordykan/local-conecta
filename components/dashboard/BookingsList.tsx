@@ -64,14 +64,23 @@ function BookingActionCard({
       }
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al actualizar", {
+          description: result.error
+        })
       } else {
         toast.success(
           action === "confirm"
             ? "Apartado confirmado"
             : action === "complete"
               ? "Apartado completado"
-              : "Apartado cancelado"
+              : "Apartado cancelado",
+          {
+            description: action === "confirm"
+              ? "El cliente ha sido notificado"
+              : action === "complete"
+                ? "El apartado se ha marcado como completado"
+                : "El apartado ha sido cancelado"
+          }
         )
       }
     })

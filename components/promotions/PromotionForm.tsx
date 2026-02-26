@@ -108,7 +108,9 @@ export function PromotionForm({
 
       setImageUrl(urlData.publicUrl)
     } catch {
-      toast.error("Error al subir imagen")
+      toast.error("Error al subir imagen", {
+        description: "No se pudo cargar la imagen. Intenta de nuevo"
+      })
       setImagePreview(promotion?.image_url ?? "")
       setImageUrl(promotion?.image_url ?? "")
     } finally {
@@ -151,10 +153,14 @@ export function PromotionForm({
         if (result.fieldErrors) {
           setErrors(result.fieldErrors)
         } else {
-          toast.error(result.error)
+          toast.error(isEdit ? "Error al actualizar" : "Error al crear", {
+            description: result.error
+          })
         }
       } else {
-        toast.success(isEdit ? "Promoción actualizada" : "Promoción creada")
+        toast.success(isEdit ? "Promoción actualizada" : "Promoción creada", {
+          description: isEdit ? "Los cambios han sido guardados" : "La promoción está visible para tus clientes"
+        })
         onOpenChange(false)
         if (!isEdit) {
           setTitle("")

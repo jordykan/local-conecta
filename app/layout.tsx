@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { RealtimeProvider } from "@/lib/contexts/RealtimeContext";
 import NextTopLoader from "nextjs-toploader";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
@@ -53,8 +54,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster closeButton={true} position="top-right" richColors={true} />
+          <RealtimeProvider>
+            {children}
+            <Toaster closeButton={true} position="top-right" richColors={true} />
+          </RealtimeProvider>
         </ThemeProvider>
       </body>
     </html>

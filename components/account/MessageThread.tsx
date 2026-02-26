@@ -8,24 +8,47 @@ import { sendMessage } from "@/app/(main)/account/actions"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { TypingIndicator } from "@/components/shared/TypingIndicator"
+import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages"
+import { useTypingIndicator } from "@/lib/hooks/useTypingIndicator"
 import type { MessageWithSender } from "@/lib/queries/messages"
 
 interface MessageThreadProps {
-  messages: MessageWithSender[]
+  initialMessages: MessageWithSender[]
   conversationId: string
   businessId: string
   currentUserId: string
+  currentUserName: string
 }
 
 export function MessageThread({
-  messages,
+  initialMessages,
   conversationId,
   businessId,
   currentUserId,
+  currentUserName,
 }: MessageThreadProps) {
   const [content, setContent] = useState("")
   const [pending, startTransition] = useTransition()
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Use Realtime hooks
+  const { messages, markAllAsRead } = useRealtimeMessages({
+    conversationId,
+    initialMessages,
+    onNewMessage: (newMessage) => {
+      // Mark as read if message is not from current user
+      if (newMessage.sender_id !== currentUserId) {
+        markAllAsRead(currentUserId)
+      }
+    },
+  })
+
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator({
+    conversationId,
+    currentUserId,
+    currentUserName,
+  })
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -37,11 +60,15 @@ export function MessageThread({
     e.preventDefault()
     if (!content.trim()) return
 
+    stopTyping() // Stop typing indicator
+
     startTransition(async () => {
       const result = await sendMessage(conversationId, businessId, content.trim())
 
       if (result?.error) {
-        toast.error(result.error)
+        toast.error("Error al enviar mensaje", {
+          description: result.error
+        })
       } else {
         setContent("")
       }
@@ -54,6 +81,22 @@ export function MessageThread({
       handleSubmit(e)
     }
   }
+
+  function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setContent(e.target.value)
+    if (e.target.value.trim()) {
+      startTyping()
+    } else {
+      stopTyping()
+    }
+  }
+
+  // Stop typing when component unmounts
+  useEffect(() => {
+    return () => {
+      stopTyping()
+    }
+  }, [stopTyping])
 
   return (
     <div className="flex flex-col">
@@ -126,13 +169,15 @@ export function MessageThread({
             )
           })
         )}
+        {/* Typing Indicator */}
+        <TypingIndicator typingUsers={typingUsers} />
       </div>
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
         <Textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
           rows={1}

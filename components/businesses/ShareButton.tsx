@@ -14,7 +14,9 @@ export function ShareButton() {
         })
       } else {
         await navigator.clipboard.writeText(window.location.href)
-        toast.success("Enlace copiado")
+        toast.success("Enlace copiado", {
+          description: "Puedes compartirlo donde quieras"
+        })
       }
     } catch {
       // User cancelled share dialog

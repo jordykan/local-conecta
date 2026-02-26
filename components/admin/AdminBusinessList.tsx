@@ -60,9 +60,13 @@ export function AdminBusinessList({ businesses, status }: AdminBusinessListProps
     startTransition(async () => {
       const result = await approveBusiness(businessId)
       if (result.success) {
-        toast.success("Negocio aprobado exitosamente")
+        toast.success("Negocio aprobado", {
+          description: "El negocio ahora es visible para todos los usuarios"
+        })
       } else {
-        toast.error(result.error ?? "Error al aprobar el negocio")
+        toast.error("Error al aprobar", {
+          description: result.error ?? "No se pudo aprobar el negocio"
+        })
       }
       setActioningId(null)
     })
@@ -73,9 +77,13 @@ export function AdminBusinessList({ businesses, status }: AdminBusinessListProps
     startTransition(async () => {
       const result = await rejectBusiness(businessId)
       if (result.success) {
-        toast.success("Negocio rechazado")
+        toast.success("Negocio rechazado", {
+          description: "El negocio ha sido rechazado y notificado"
+        })
       } else {
-        toast.error(result.error ?? "Error al rechazar el negocio")
+        toast.error("Error al rechazar", {
+          description: result.error ?? "No se pudo rechazar el negocio"
+        })
       }
       setActioningId(null)
     })
@@ -86,9 +94,13 @@ export function AdminBusinessList({ businesses, status }: AdminBusinessListProps
     startTransition(async () => {
       const result = await suspendBusiness(businessId)
       if (result.success) {
-        toast.success("Negocio suspendido")
+        toast.success("Negocio suspendido", {
+          description: "El negocio ya no es visible para los usuarios"
+        })
       } else {
-        toast.error(result.error ?? "Error al suspender el negocio")
+        toast.error("Error al suspender", {
+          description: result.error ?? "No se pudo suspender el negocio"
+        })
       }
       setActioningId(null)
     })
@@ -99,9 +111,15 @@ export function AdminBusinessList({ businesses, status }: AdminBusinessListProps
     startTransition(async () => {
       const result = await toggleFeaturedBusiness(businessId, !currentFeatured)
       if (result.success) {
-        toast.success(currentFeatured ? "Negocio removido de destacados" : "Negocio marcado como destacado")
+        toast.success(currentFeatured ? "Removido de destacados" : "Marcado como destacado", {
+          description: currentFeatured
+            ? "El negocio ya no aparece en la sección destacados"
+            : "El negocio ahora aparece en la sección destacados"
+        })
       } else {
-        toast.error(result.error ?? "Error al actualizar el negocio")
+        toast.error("Error al actualizar", {
+          description: result.error ?? "No se pudo actualizar el negocio"
+        })
       }
       setActioningId(null)
     })

@@ -30,6 +30,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { UnreadBadge } from "@/components/shared/UnreadBadge";
+import { useUnreadCount } from "@/lib/hooks/useUnreadCount";
 import type { DashboardUser, DashboardBusiness } from "./types";
 
 interface SidebarProps {
@@ -80,6 +82,12 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
   const [loadingHref, setLoadingHref] = useState<string | null>(null);
   const router = useRouter();
   const status = STATUS_MAP[business.status] ?? STATUS_MAP.pending;
+
+  // Get unread message count for business
+  const { count: unreadCount } = useUnreadCount({
+    userId: user.id,
+    businessId: business.id,
+  });
 
   function handleLogout() {
     startTransition(() => {
@@ -176,6 +184,9 @@ function NavContent({ business, user, pathname, onNavigate }: NavContentProps) {
                   <item.icon className="size-[18px] shrink-0" />
                 )}
                 <span className="flex-1">{item.label}</span>
+                {item.href === "/dashboard/messages" && unreadCount > 0 && (
+                  <UnreadBadge count={unreadCount} size="sm" />
+                )}
                 {item.soon && (
                   <Badge
                     variant="outline"
