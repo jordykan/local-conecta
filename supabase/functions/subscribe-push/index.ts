@@ -38,6 +38,8 @@ serve(async (req) => {
 
     // Get JWT from Authorization header
     const authHeader = req.headers.get('Authorization')
+    console.log('[Subscribe] Auth header present:', !!authHeader)
+
     if (!authHeader) {
       console.error('[Subscribe] No authorization header')
       return new Response(
@@ -48,12 +50,26 @@ serve(async (req) => {
 
     // Extract token from "Bearer <token>"
     const token = authHeader.replace('Bearer ', '')
+    console.log('[Subscribe] Token length:', token.length)
 
     // Verify JWT and get user
+    console.log('[Subscribe] Verifying JWT...')
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
-    if (authError || !user) {
-      console.error('[Subscribe] Auth error:', authError)
+    if (authError) {
+      console.error('[Subscribe] Auth error details:', {
+        message: authError.message,
+        status: authError.status,
+        name: authError.name
+      })
+      return new Response(
+        JSON.stringify({ error: 'Usuario no autenticado', details: authError.message }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!user) {
+      console.error('[Subscribe] No user returned from auth.getUser()')
       return new Response(
         JSON.stringify({ error: 'Usuario no autenticado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
