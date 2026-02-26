@@ -38,10 +38,19 @@ export async function sendPushNotification(params: SendNotificationParams): Prom
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('[Push] Supabase credentials not configured')
+    if (!supabaseUrl) {
+      console.error('[Push] NEXT_PUBLIC_SUPABASE_URL not configured')
       return false
     }
+
+    if (!serviceRoleKey) {
+      console.error('[Push] SUPABASE_SERVICE_ROLE_KEY not configured')
+      console.error('[Push] Add SUPABASE_SERVICE_ROLE_KEY to your .env.local file')
+      return false
+    }
+
+    console.log('[Push] Sending notification to user:', params.userId)
+    console.log('[Push] Calling Edge Function:', `${supabaseUrl}/functions/v1/send-notification`)
 
     // Llamar a la Edge Function para enviar la notificación
     const response = await fetch(
@@ -57,13 +66,19 @@ export async function sendPushNotification(params: SendNotificationParams): Prom
     )
 
     if (!response.ok) {
-      const error = await response.json()
-      console.error('[Push] Error sending notification:', error)
+      const errorText = await response.text()
+      console.error('[Push] Edge Function error:', response.status, errorText)
+      try {
+        const errorJson = JSON.parse(errorText)
+        console.error('[Push] Error details:', errorJson)
+      } catch (e) {
+        // Error no es JSON
+      }
       return false
     }
 
     const result = await response.json()
-    console.log('[Push] Notification sent:', result)
+    console.log('[Push] Notification sent successfully:', result)
 
     return true
   } catch (error) {
