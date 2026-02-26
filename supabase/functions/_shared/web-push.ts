@@ -47,14 +47,22 @@ export async function createVapidAuthToken(
   const unsignedToken = `${headerB64}.${payloadB64}`
 
   // Import private key for signing
-  // VAPID private key is a 32-byte raw EC private key
+  // VAPID keys: private is 32 bytes, public is 65 bytes (0x04 + x + y)
   const privateKeyBytes = base64UrlToUint8Array(vapidPrivateKey)
+  const publicKeyBytes = base64UrlToUint8Array(vapidPublicKey)
 
-  // Convert raw bytes to JWK format for importKey
+  // Extract x and y coordinates from uncompressed public key
+  // Format: 0x04 + x (32 bytes) + y (32 bytes)
+  const x = publicKeyBytes.slice(1, 33)
+  const y = publicKeyBytes.slice(33, 65)
+
+  // Convert to JWK format for importKey
   const jwk = {
     kty: 'EC',
     crv: 'P-256',
     d: uint8ArrayToBase64Url(privateKeyBytes),
+    x: uint8ArrayToBase64Url(x),
+    y: uint8ArrayToBase64Url(y),
     ext: true
   }
 
