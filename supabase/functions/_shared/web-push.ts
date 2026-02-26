@@ -47,10 +47,20 @@ export async function createVapidAuthToken(
   const unsignedToken = `${headerB64}.${payloadB64}`
 
   // Import private key for signing
+  // VAPID private key is a 32-byte raw EC private key
   const privateKeyBytes = base64UrlToUint8Array(vapidPrivateKey)
+
+  // Convert raw bytes to JWK format for importKey
+  const jwk = {
+    kty: 'EC',
+    crv: 'P-256',
+    d: uint8ArrayToBase64Url(privateKeyBytes),
+    ext: true
+  }
+
   const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    privateKeyBytes,
+    'jwk',
+    jwk,
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
