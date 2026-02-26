@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { bookingSchema } from "@/lib/validations/booking"
 import { reviewSchema } from "@/lib/validations/review"
 import { canUserReview } from "@/lib/queries/reviews"
+import { sendNotificationIfEnabled, NOTIFICATION_TYPE } from "@/lib/services/push-notifications"
 
 export async function createBooking(data: unknown) {
   const supabase = await createClient()
@@ -23,10 +24,10 @@ export async function createBooking(data: unknown) {
   const { productServiceId, businessId, bookingDate, bookingTime, quantity, notes } =
     parsed.data
 
-  // Verify business is active
+  // Verify business is active and get owner info
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, slug, status")
+    .select("id, slug, status, name, owner_id")
     .eq("id", businessId)
     .single()
 
@@ -69,19 +70,45 @@ export async function createBooking(data: unknown) {
     }
   }
 
+  // Get user profile for notification
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
   // Insert booking
-  const { error } = await supabase.from("bookings").insert({
-    user_id: user.id,
-    business_id: businessId,
-    product_service_id: productServiceId,
-    booking_date: bookingDate,
-    booking_time: bookingTime || null,
-    quantity,
-    notes: notes?.trim() || null,
-    status: "pending",
-  })
+  const { data: newBooking, error } = await supabase
+    .from("bookings")
+    .insert({
+      user_id: user.id,
+      business_id: businessId,
+      product_service_id: productServiceId,
+      booking_date: bookingDate,
+      booking_time: bookingTime || null,
+      quantity,
+      notes: notes?.trim() || null,
+      status: "pending",
+    })
+    .select("id")
+    .single()
 
   if (error) return { error: "No se pudo crear el apartado. Intenta de nuevo." }
+
+  // Send push notification to business owner
+  if (newBooking && userProfile) {
+    await sendNotificationIfEnabled(
+      {
+        userId: business.owner_id,
+        title: "Nueva reserva",
+        body: `${userProfile.full_name} ha solicitado una reserva para ${product.name}`,
+        url: `/dashboard/bookings`,
+        tag: "booking",
+        icon: "/icon.svg"
+      },
+      NOTIFICATION_TYPE.NEW_BOOKING
+    )
+  }
 
   revalidatePath(`/businesses/${business.slug}`)
   revalidatePath("/account/bookings")

@@ -115,9 +115,25 @@ export async function isNotificationEnabled(
  */
 export async function sendNotificationIfEnabled(
   params: SendNotificationParams,
-  notificationType: keyof NotificationType
+  notificationType: NotificationType[keyof NotificationType]
 ): Promise<boolean> {
-  const enabled = await isNotificationEnabled(params.userId, notificationType)
+  // Convertir el valor a la clave correspondiente
+  const typeKeyMap: Record<string, keyof NotificationType> = {
+    'new_booking': 'NEW_BOOKING',
+    'booking_confirmed': 'BOOKING_CONFIRMED',
+    'booking_cancelled': 'BOOKING_CANCELLED',
+    'new_message': 'NEW_MESSAGE',
+    'new_review': 'NEW_REVIEW',
+    'review_response': 'REVIEW_RESPONSE'
+  }
+
+  const typeKey = typeKeyMap[notificationType]
+  if (!typeKey) {
+    console.error(`[Push] Unknown notification type: ${notificationType}`)
+    return false
+  }
+
+  const enabled = await isNotificationEnabled(params.userId, typeKey)
 
   if (!enabled) {
     console.log(`[Push] Notification ${notificationType} disabled for user ${params.userId}`)
