@@ -25,7 +25,18 @@ serve(async (req) => {
   try {
     console.log('[Subscribe] Request received')
 
-    // Get user from auth header
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[Subscribe] Supabase config missing')
+      throw new Error('Supabase configuration missing')
+    }
+
+    // Create admin client to verify JWT
+    const supabaseAdmin = createClient(supabaseUrl, supabaseKey)
+
+    // Get JWT from Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       console.error('[Subscribe] No authorization header')
@@ -35,22 +46,11 @@ serve(async (req) => {
       )
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
+    // Extract token from "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '')
 
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('[Subscribe] Supabase config missing')
-      throw new Error('Supabase configuration missing')
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: { Authorization: authHeader }
-      }
-    })
-
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Verify JWT and get user
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       console.error('[Subscribe] Auth error:', authError)
@@ -74,12 +74,6 @@ serve(async (req) => {
     }
 
     console.log('[Subscribe] Saving subscription for user:', user.id)
-
-    // Use service role client to insert subscription
-    const supabaseAdmin = createClient(
-      supabaseUrl,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
 
     // Check if subscription already exists
     const { data: existing } = await supabaseAdmin
