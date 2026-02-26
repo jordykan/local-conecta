@@ -163,10 +163,10 @@ export function BookingModal({
         {success ? (
           <>
             <DialogHeader>
-              <DialogTitle className="text-center">¡Reserva creada!</DialogTitle>
+              <DialogTitle className="text-center">¡Apartado creado!</DialogTitle>
               <DialogDescription className="text-center">
-                Tu reserva de <strong>{product.name}</strong> ha sido enviada.
-                El negocio la confirmará pronto.
+                Tu apartado de <strong>{product.name}</strong> ha sido enviado.
+                El negocio lo confirmará pronto.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -180,7 +180,7 @@ export function BookingModal({
             <DialogHeader>
               <DialogTitle>Apartar {product.name}</DialogTitle>
               <DialogDescription>
-                {isService ? "Reserva un horario" : "Aparta este producto"} —{" "}
+                {isService ? "Aparta un horario" : "Aparta este producto"} —{" "}
                 {formattedPrice}
               </DialogDescription>
             </DialogHeader>
@@ -316,7 +316,7 @@ export function BookingModal({
                 disabled={pending || !date}
                 className="w-full"
               >
-                {pending ? "Creando reserva..." : "Confirmar reserva"}
+                {pending ? "Creando apartado..." : "Confirmar apartado"}
               </Button>
             </DialogFooter>
           </>

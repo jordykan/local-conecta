@@ -38,7 +38,7 @@ export async function confirmBooking(bookingId: string, businessId: string) {
     .eq("business_id", businessId)
     .eq("status", "pending");
 
-  if (error) return { error: "No se pudo confirmar la reserva." };
+  if (error) return { error: "No se pudo confirmar el apartado." };
 
   revalidatePath("/dashboard/bookings");
   revalidatePath("/account/bookings");
@@ -59,7 +59,7 @@ export async function completeBooking(bookingId: string, businessId: string) {
     .eq("business_id", businessId)
     .eq("status", "confirmed");
 
-  if (error) return { error: "No se pudo completar la reserva." };
+  if (error) return { error: "No se pudo completar el apartado." };
 
   revalidatePath("/dashboard/bookings");
   revalidatePath("/account/bookings");
@@ -85,7 +85,7 @@ export async function cancelBookingBusiness(
     .eq("business_id", businessId)
     .in("status", ["pending", "confirmed"]);
 
-  if (error) return { error: "No se pudo cancelar la reserva." };
+  if (error) return { error: "No se pudo cancelar el apartado." };
 
   revalidatePath("/dashboard/bookings");
   revalidatePath("/account/bookings");

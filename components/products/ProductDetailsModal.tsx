@@ -140,7 +140,7 @@ export function ProductDetailsModal({
               ¿Como adquirirlo?
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              No disponible para reserva en línea. Contacta para más información.
+              No disponible para apartado en línea. Contacta para más información.
             </p>
           </div>
         </div>

@@ -9,12 +9,13 @@ import type { BusinessHourEntry } from "@/lib/validations/business"
 interface HoursFormProps {
   hours: BusinessHourEntry[]
   onChange: (hours: BusinessHourEntry[]) => void
+  disabled?: boolean
 }
 
 const DEFAULT_OPEN = "09:00"
 const DEFAULT_CLOSE = "18:00"
 
-export function HoursForm({ hours, onChange }: HoursFormProps) {
+export function HoursForm({ hours, onChange, disabled = false }: HoursFormProps) {
   function updateDay(dayOfWeek: number, update: Partial<BusinessHourEntry>) {
     onChange(
       hours.map((h) =>
@@ -48,6 +49,7 @@ export function HoursForm({ hours, onChange }: HoursFormProps) {
                   onCheckedChange={(checked) =>
                     updateDay(h.dayOfWeek, { isClosed: checked })
                   }
+                  disabled={disabled}
                 />
               </div>
             </div>
@@ -59,6 +61,7 @@ export function HoursForm({ hours, onChange }: HoursFormProps) {
                 onCheckedChange={(checked) =>
                   updateDay(h.dayOfWeek, { isClosed: checked })
                 }
+                disabled={disabled}
               />
               <Label
                 htmlFor={`closed-desk-${h.dayOfWeek}`}
@@ -77,6 +80,7 @@ export function HoursForm({ hours, onChange }: HoursFormProps) {
                     updateDay(h.dayOfWeek, { openTime: e.target.value })
                   }
                   className="h-10 w-[130px] text-sm"
+                  disabled={disabled}
                 />
                 <span className="text-sm text-muted-foreground">a</span>
                 <Input
@@ -85,6 +89,7 @@ export function HoursForm({ hours, onChange }: HoursFormProps) {
                   onChange={(e) =>
                     updateDay(h.dayOfWeek, { closeTime: e.target.value })
                   }
+                  disabled={disabled}
                   className="h-10 w-[130px] text-sm"
                 />
               </div>

@@ -119,7 +119,7 @@ export async function canUserReview(
   if (!bookings || bookings.length === 0) {
     return {
       canReview: false,
-      reason: "Debes tener una reserva completada para dejar una reseña",
+      reason: "Debes tener un apartado completado para dejar una reseña",
     }
   }
 

@@ -29,7 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Vista general",
   "/dashboard/products": "Productos y servicios",
   "/dashboard/hours": "Horarios de atencion",
-  "/dashboard/bookings": "Reservas",
+  "/dashboard/bookings": "Apartados",
   "/dashboard/messages": "Mensajes",
   "/dashboard/promotions": "Promociones",
 }

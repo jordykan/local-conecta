@@ -126,6 +126,8 @@ export type Database = {
           longitude: number | null
           status: "pending" | "active" | "suspended"
           is_featured: boolean
+          suspension_reason: string | null
+          suspended_at: string | null
           created_at: string
           updated_at: string
         }
@@ -148,6 +150,8 @@ export type Database = {
           longitude?: number | null
           status?: "pending" | "active" | "suspended"
           is_featured?: boolean
+          suspension_reason?: string | null
+          suspended_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -169,6 +173,8 @@ export type Database = {
           longitude?: number | null
           status?: "pending" | "active" | "suspended"
           is_featured?: boolean
+          suspension_reason?: string | null
+          suspended_at?: string | null
           updated_at?: string
         }
         Relationships: [

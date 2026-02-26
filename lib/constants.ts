@@ -41,9 +41,9 @@ export const DISCOUNT_TYPE = {
 // Booking status labels (Spanish)
 export const BOOKING_STATUS_LABELS: Record<string, string> = {
   pending: "Pendiente",
-  confirmed: "Confirmada",
-  completed: "Completada",
-  cancelled: "Cancelada",
+  confirmed: "Confirmado",
+  completed: "Completado",
+  cancelled: "Cancelado",
   no_show: "No asistio",
 }
 

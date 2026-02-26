@@ -11,7 +11,7 @@ export const reviewSchema = z.object({
     .min(10, "El comentario debe tener al menos 10 caracteres")
     .max(1000, "El comentario no puede exceder 1000 caracteres"),
   businessId: z.string().uuid("ID de negocio inválido"),
-  bookingId: z.string().uuid("ID de reserva inválido").optional().nullable(),
+  bookingId: z.string().uuid("ID de apartado inválido").optional().nullable(),
 })
 
 export const ownerReplySchema = z.object({

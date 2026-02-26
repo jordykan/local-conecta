@@ -50,7 +50,7 @@ const navItems: Array<{
     icon: IconPackage,
   },
   { href: "/dashboard/hours", label: "Horarios", icon: IconClock },
-  { href: "/dashboard/bookings", label: "Reservas", icon: IconCalendarEvent },
+  { href: "/dashboard/bookings", label: "Apartados", icon: IconCalendarEvent },
   { href: "/dashboard/messages", label: "Mensajes", icon: IconMessage },
   {
     href: "/dashboard/promotions",

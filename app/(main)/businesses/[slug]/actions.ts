@@ -12,7 +12,7 @@ export async function createBooking(data: unknown) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: "Debes iniciar sesión para reservar." }
+  if (!user) return { error: "Debes iniciar sesión para apartar." }
 
   const parsed = bookingSchema.safeParse(data)
   if (!parsed.success) {
@@ -43,7 +43,7 @@ export async function createBooking(data: unknown) {
     .single()
 
   if (ownBusiness) {
-    return { error: "No puedes reservar en tu propio negocio." }
+    return { error: "No puedes apartar en tu propio negocio." }
   }
 
   // Verify product is bookable and available
@@ -55,7 +55,7 @@ export async function createBooking(data: unknown) {
     .single()
 
   if (!product) return { error: "Producto o servicio no encontrado." }
-  if (!product.is_bookable) return { error: "Este producto no es reservable." }
+  if (!product.is_bookable) return { error: "Este producto no se puede apartar." }
   if (!product.is_available)
     return { error: "Este producto no está disponible actualmente." }
 
@@ -81,7 +81,7 @@ export async function createBooking(data: unknown) {
     status: "pending",
   })
 
-  if (error) return { error: "No se pudo crear la reserva. Intenta de nuevo." }
+  if (error) return { error: "No se pudo crear el apartado. Intenta de nuevo." }
 
   revalidatePath(`/businesses/${business.slug}`)
   revalidatePath("/account/bookings")

@@ -162,7 +162,7 @@ export function Navbar({ user }: NavbarProps) {
                 <DropdownMenuItem asChild className="cursor-pointer">
                   <Link href="/account/bookings" className="flex items-center gap-2.5 px-3 py-2">
                     <IconCalendarEvent className="size-4 text-muted-foreground" />
-                    Mis reservas
+                    Mis apartados
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer">
@@ -279,7 +279,7 @@ export function Navbar({ user }: NavbarProps) {
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     >
                       <IconCalendarEvent className="size-4" />
-                      Mis reservas
+                      Mis apartados
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>

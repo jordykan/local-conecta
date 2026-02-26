@@ -68,10 +68,10 @@ function BookingActionCard({
       } else {
         toast.success(
           action === "confirm"
-            ? "Reserva confirmada"
+            ? "Apartado confirmado"
             : action === "complete"
-              ? "Reserva completada"
-              : "Reserva cancelada"
+              ? "Apartado completado"
+              : "Apartado cancelado"
         )
       }
     })

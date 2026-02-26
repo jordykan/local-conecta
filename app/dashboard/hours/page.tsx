@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useTransition } from "react"
 import { toast } from "sonner"
+import { IconAlertCircle } from "@tabler/icons-react"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 import { HoursForm } from "@/components/hours/HoursForm"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { updateBusinessHours } from "./actions"
 import type { BusinessHourEntry } from "@/lib/validations/business"
 import type { BusinessHours } from "@/lib/types/database"
@@ -41,6 +43,7 @@ function toFormHours(dbHours: BusinessHours[]): BusinessHourEntry[] {
 export default function HoursPage() {
   const [hours, setHours] = useState<BusinessHourEntry[]>(buildDefaultHours)
   const [businessId, setBusinessId] = useState<string | null>(null)
+  const [businessStatus, setBusinessStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [pending, startTransition] = useTransition()
 
@@ -54,7 +57,7 @@ export default function HoursPage() {
 
       const { data: businesses } = await supabase
         .from("businesses")
-        .select("id")
+        .select("id, status")
         .eq("owner_id", user.id)
         .limit(1)
 
@@ -62,6 +65,7 @@ export default function HoursPage() {
       if (!biz) return
 
       setBusinessId(biz.id)
+      setBusinessStatus(biz.status)
 
       const { data: dbHours } = await supabase
         .from("business_hours")
@@ -101,16 +105,31 @@ export default function HoursPage() {
     )
   }
 
+  const isSuspended = businessStatus === "suspended"
+
   return (
     <DashboardShell
       description="Configura tus dias y horas de servicio"
       action={
-        <Button size="lg" onClick={handleSave} disabled={pending} className="px-6">
+        <Button
+          size="lg"
+          onClick={handleSave}
+          disabled={pending || isSuspended}
+          className="px-6"
+        >
           {pending ? "Guardando..." : "Guardar horarios"}
         </Button>
       }
     >
-      <HoursForm hours={hours} onChange={setHours} />
+      {isSuspended && (
+        <Alert variant="destructive" className="mb-6">
+          <IconAlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Tu negocio está suspendido. No puedes modificar los horarios.
+          </AlertDescription>
+        </Alert>
+      )}
+      <HoursForm hours={hours} onChange={setHours} disabled={isSuspended} />
     </DashboardShell>
   )
 }

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/account", label: "Mi cuenta", icon: IconUser },
-  { href: "/account/bookings", label: "Mis reservas", icon: IconCalendarEvent },
+  { href: "/account/bookings", label: "Mis apartados", icon: IconCalendarEvent },
   { href: "/account/messages", label: "Mis mensajes", icon: IconMessageCircle },
   { href: "/account/favorites", label: "Mis favoritos", icon: IconHeart },
 ]

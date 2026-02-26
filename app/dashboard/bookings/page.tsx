@@ -29,7 +29,7 @@ export default async function DashboardBookingsPage() {
   )
 
   return (
-    <DashboardShell description="Gestiona las reservas de tus clientes">
+    <DashboardShell description="Gestiona los apartados de tus clientes">
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending">

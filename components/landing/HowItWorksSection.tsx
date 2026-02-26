@@ -19,7 +19,7 @@ const steps: Step[] = [
     number: 2,
     icon: IconCalendarEvent,
     title: "Aparta",
-    description: "Reserva productos o servicios directamente desde la app en segundos",
+    description: "Aparta productos o servicios directamente desde la app en segundos",
   },
   {
     number: 3,

@@ -19,7 +19,7 @@ export default async function AccountLayout({
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Mi cuenta</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Administra tu perfil, reservas, mensajes y favoritos
+          Administra tu perfil, apartados, mensajes y favoritos
         </p>
       </div>
 

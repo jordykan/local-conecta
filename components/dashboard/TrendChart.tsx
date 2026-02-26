@@ -87,7 +87,7 @@ export function TrendChart({
       color: "oklch(0.65 0.19 35)",
     },
     reservas: {
-      label: "Reservas",
+      label: "Apartados",
       color: "oklch(0.60 0.15 145)",
     },
     mensajes: {

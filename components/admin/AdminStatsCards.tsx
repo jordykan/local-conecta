@@ -44,11 +44,11 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
       description: "Usuarios registrados",
     },
     {
-      title: "Reservas",
+      title: "Apartados",
       value: stats.totalBookings,
       icon: IconCalendar,
       color: "indigo",
-      description: "Reservas realizadas",
+      description: "Apartados realizados",
     },
     {
       title: "Reseñas",

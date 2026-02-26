@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const metadata = {
-  title: "Mis reservas — Local Conecta",
+  title: "Mis apartados — Local Conecta",
 }
 
 export default async function BookingsPage() {
@@ -35,9 +35,9 @@ export default async function BookingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Mis reservas</h2>
+        <h2 className="text-lg font-semibold">Mis apartados</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Administra tus reservas activas y revisa tu historial
+          Administra tus apartados activos y revisa tu historial
         </p>
       </div>
 
@@ -59,8 +59,8 @@ export default async function BookingsPage() {
           ) : (
             <EmptyState
               icon={IconCalendarEvent}
-              title="No tienes reservas activas"
-              description="Cuando hagas una reserva en un negocio, aparecera aqui"
+              title="No tienes apartados activos"
+              description="Cuando hagas un apartado en un negocio, aparecera aqui"
               actionLabel="Explorar negocios"
               actionHref="/businesses"
             />
@@ -76,7 +76,7 @@ export default async function BookingsPage() {
             <EmptyState
               icon={IconCalendarEvent}
               title="Sin historial"
-              description="Tu historial de reservas completadas aparecera aqui"
+              description="Tu historial de apartados completados aparecera aqui"
             />
           )}
         </TabsContent>

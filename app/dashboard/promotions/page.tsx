@@ -4,6 +4,7 @@ import { getBusinessByOwner } from "@/lib/queries/business"
 import { getPromotionsByBusiness } from "@/lib/queries/promotions"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 import { PromotionGrid } from "@/components/promotions/PromotionGrid"
+import { canEditContent } from "@/lib/utils/business-restrictions"
 
 export default async function PromotionsPage() {
   const supabase = await createClient()
@@ -21,7 +22,12 @@ export default async function PromotionsPage() {
 
   return (
     <DashboardShell description="Crea y administra promociones especiales para atraer clientes">
-      <PromotionGrid items={promotions ?? []} businessId={business.id} />
+      <PromotionGrid
+        items={promotions ?? []}
+        businessId={business.id}
+        canEdit={canEditContent(business)}
+        businessStatus={business.status}
+      />
     </DashboardShell>
   )
 }

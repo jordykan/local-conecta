@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getBusinessByOwner, getProductsByBusiness } from "@/lib/queries/business"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 import { ProductGrid } from "@/components/products/ProductGrid"
+import { canEditContent } from "@/lib/utils/business-restrictions"
 
 export default async function ProductsPage() {
   const supabase = await createClient()
@@ -22,8 +23,9 @@ export default async function ProductsPage() {
     <DashboardShell description="Administra lo que ofreces a tu comunidad">
       <ProductGrid
         items={products ?? []}
-        editable
+        editable={canEditContent(business)}
         businessId={business.id}
+        businessStatus={business.status}
       />
     </DashboardShell>
   )

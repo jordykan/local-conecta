@@ -92,10 +92,10 @@ export default async function AnalyticsPage({
               description="Número de veces que visitaron tu perfil"
             />
             <StatsCard
-              title="Reservas"
+              title="Apartados"
               value={analytics.totalBookings}
               icon="bookings"
-              description="Total de reservas recibidas"
+              description="Total de apartados recibidos"
             />
             <StatsCard
               title="Mensajes"
@@ -119,10 +119,10 @@ export default async function AnalyticsPage({
             {/* Bookings Chart */}
             <AnalyticsChart
               data={analytics.bookingsData}
-              title="Reservas por día"
-              description="Reservas recibidas en este periodo"
+              title="Apartados por día"
+              description="Apartados recibidos en este periodo"
               color="oklch(0.60 0.15 145)"
-              dataKey="reservas"
+              dataKey="apartados"
             />
 
             {/* Messages Chart */}
@@ -178,7 +178,7 @@ export default async function AnalyticsPage({
                     %
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    De visitas a reservas
+                    De visitas a apartados
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -193,7 +193,7 @@ export default async function AnalyticsPage({
                       : 0}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Mensajes por reserva
+                    Mensajes por apartado
                   </p>
                 </div>
               </div>

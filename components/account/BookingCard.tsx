@@ -67,7 +67,7 @@ export function BookingCard({ booking }: BookingCardProps) {
       if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success("Reserva cancelada")
+        toast.success("Apartado cancelado")
         setDialogOpen(false)
         setReason("")
       }
@@ -159,12 +159,12 @@ export function BookingCard({ booking }: BookingCardProps) {
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-destructive">
                     <IconX className="mr-1 size-3.5" />
-                    Cancelar reserva
+                    Cancelar apartado
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Cancelar reserva</AlertDialogTitle>
+                    <AlertDialogTitle>Cancelar apartado</AlertDialogTitle>
                     <AlertDialogDescription>
                       Esta accion no se puede deshacer. Indica el motivo de la
                       cancelacion.

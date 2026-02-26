@@ -357,7 +357,7 @@ export function ProductForm({
                 onCheckedChange={setIsBookable}
                 className="scale-90"
               />
-              <span className="text-xs font-medium">Reservable</span>
+              <span className="text-xs font-medium">Apartable</span>
             </label>
           </div>
 

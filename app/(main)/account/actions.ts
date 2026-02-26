@@ -51,11 +51,11 @@ export async function cancelBooking(bookingId: string, reason: string) {
     .single()
 
   if (!booking || booking.user_id !== user.id) {
-    return { error: "No tienes permiso para cancelar esta reserva." }
+    return { error: "No tienes permiso para cancelar este apartado." }
   }
 
   if (booking.status !== "pending" && booking.status !== "confirmed") {
-    return { error: "Solo puedes cancelar reservas pendientes o confirmadas." }
+    return { error: "Solo puedes cancelar apartados pendientes o confirmados." }
   }
 
   const { error } = await supabase
@@ -67,7 +67,7 @@ export async function cancelBooking(bookingId: string, reason: string) {
     })
     .eq("id", bookingId)
 
-  if (error) return { error: "No se pudo cancelar la reserva." }
+  if (error) return { error: "No se pudo cancelar el apartado." }
 
   revalidatePath("/account/bookings")
   return { success: true }

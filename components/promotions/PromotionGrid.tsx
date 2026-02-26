@@ -1,18 +1,21 @@
 "use client"
 
 import { useState } from "react"
-import { IconPlus } from "@tabler/icons-react"
+import { IconPlus, IconAlertCircle } from "@tabler/icons-react"
 import type { Promotion } from "@/lib/types/database"
 import { PromotionCard } from "./PromotionCard"
 import { PromotionForm } from "./PromotionForm"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface PromotionGridProps {
   items: Promotion[]
   businessId: string
+  canEdit?: boolean
+  businessStatus?: "pending" | "active" | "suspended"
 }
 
-export function PromotionGrid({ items, businessId }: PromotionGridProps) {
+export function PromotionGrid({ items, businessId, canEdit = true, businessStatus }: PromotionGridProps) {
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(
     null,
   )
@@ -20,9 +23,19 @@ export function PromotionGrid({ items, businessId }: PromotionGridProps) {
 
   const activePromotions = items.filter((p) => p.is_active && (!p.ends_at || new Date(p.ends_at) > new Date()))
   const inactivePromotions = items.filter((p) => !p.is_active || (p.ends_at && new Date(p.ends_at) <= new Date()))
+  const isSuspended = businessStatus === "suspended"
 
   return (
     <>
+      {isSuspended && (
+        <Alert variant="destructive" className="mb-6">
+          <IconAlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Tu negocio está suspendido. No puedes crear o editar promociones.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Promociones activas</h2>
@@ -30,7 +43,11 @@ export function PromotionGrid({ items, businessId }: PromotionGridProps) {
             {activePromotions.length} promoción(es) activa(s)
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)} size="lg">
+        <Button
+          onClick={() => setShowCreate(true)}
+          size="lg"
+          disabled={!canEdit || isSuspended}
+        >
           <IconPlus className="mr-1.5 size-4" />
           Nueva promoción
         </Button>
@@ -43,7 +60,7 @@ export function PromotionGrid({ items, businessId }: PromotionGridProps) {
             <PromotionCard
               key={promotion.id}
               promotion={promotion}
-              onEdit={setEditingPromotion}
+              onEdit={canEdit && !isSuspended ? setEditingPromotion : undefined}
             />
           ))}
         </div>
@@ -56,6 +73,7 @@ export function PromotionGrid({ items, businessId }: PromotionGridProps) {
             variant="link"
             onClick={() => setShowCreate(true)}
             className="mt-2"
+            disabled={!canEdit || isSuspended}
           >
             Crear primera promoción
           </Button>
