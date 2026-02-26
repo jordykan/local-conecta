@@ -92,12 +92,16 @@ serve(async (req) => {
     console.log('[Subscribe] Saving subscription for user:', user.id)
 
     // Check if subscription already exists
-    const { data: existing } = await supabaseAdmin
+    // Note: We can't easily query JSONB fields with Supabase JS client,
+    // so we'll get all user subscriptions and filter in memory
+    const { data: existingList } = await supabaseAdmin
       .from('push_subscriptions')
-      .select('id')
+      .select('id, subscription')
       .eq('user_id', user.id)
-      .eq('subscription->>endpoint', subscription.endpoint)
-      .single()
+
+    const existing = existingList?.find(
+      (sub: any) => sub.subscription?.endpoint === subscription.endpoint
+    )
 
     if (existing) {
       console.log('[Subscribe] Subscription already exists, updating...')

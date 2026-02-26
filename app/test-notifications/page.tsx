@@ -13,6 +13,7 @@ export default function TestNotificationsPage() {
   const { permission, isSupported, requestPermission, subscription, error } = usePushNotifications()
   const { isStandalone } = usePWA()
   const [userId, setUserId] = useState<string | null>(null)
+  const [logs, setLogs] = useState<string[]>([])
   const supabase = createClient()
 
   useEffect(() => {
@@ -22,6 +23,35 @@ export default function TestNotificationsPage() {
       console.log('[Test] User ID:', user?.id)
     }
     checkUser()
+
+    // Capturar logs de consola
+    const originalLog = console.log
+    const originalError = console.error
+
+    console.log = (...args) => {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ')
+      if (message.includes('[Push]') || message.includes('[Test]')) {
+        setLogs(prev => [...prev.slice(-20), `[LOG] ${message}`])
+      }
+      originalLog(...args)
+    }
+
+    console.error = (...args) => {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ')
+      if (message.includes('[Push]') || message.includes('[Test]')) {
+        setLogs(prev => [...prev.slice(-20), `[ERROR] ${message}`])
+      }
+      originalError(...args)
+    }
+
+    return () => {
+      console.log = originalLog
+      console.error = originalError
+    }
   }, [])
 
   const handleRequest = async () => {
@@ -94,6 +124,22 @@ export default function TestNotificationsPage() {
               <IconRefresh className="h-4 w-4" />
             </Button>
           </div>
+
+          {logs.length > 0 && (
+            <div className="rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-950/30">
+              <p className="font-medium text-gray-900 dark:text-gray-100 mb-2">Logs de consola:</p>
+              <div className="space-y-1 max-h-60 overflow-y-auto">
+                {logs.map((log, i) => (
+                  <div
+                    key={i}
+                    className={`font-mono ${log.startsWith('[ERROR]') ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                  >
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {permission === 'denied' && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/30 dark:text-red-200">
