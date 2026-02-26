@@ -1,23 +1,42 @@
 'use client'
 
 import { usePushNotifications } from '@/lib/hooks/usePushNotifications'
+import { usePWA } from '@/lib/hooks/usePWA'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconBell } from '@tabler/icons-react'
+import { IconBell, IconRefresh } from '@tabler/icons-react'
 import { toast } from 'sonner'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function TestNotificationsPage() {
-  const { permission, isSupported, requestPermission, subscription } = usePushNotifications()
+  const { permission, isSupported, requestPermission, subscription, error } = usePushNotifications()
+  const { isStandalone } = usePWA()
+  const [userId, setUserId] = useState<string | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUserId(user?.id ?? null)
+      console.log('[Test] User ID:', user?.id)
+    }
+    checkUser()
+  }, [])
 
   const handleRequest = async () => {
     console.log('[Test] Requesting permission...')
     const success = await requestPermission()
 
     if (success) {
-      toast.success('Permisos concedidos!')
+      toast.success('Permisos concedidos y suscripción guardada!')
     } else {
-      toast.error('Permisos denegados o error')
+      toast.error('Error al solicitar permisos')
     }
+  }
+
+  const handleRefresh = () => {
+    window.location.reload()
   }
 
   return (
@@ -35,11 +54,19 @@ export default function TestNotificationsPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Usuario:</span>
+              <span className="text-sm">{userId ? `✅ ${userId.substring(0, 8)}...` : '❌ No autenticado'}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">PWA Instalada:</span>
+              <span className="text-sm">{isStandalone ? '✅ Sí (standalone)' : '❌ No (browser)'}</span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Soporte:</span>
               <span className="text-sm">{isSupported ? '✅ Soportado' : '❌ No soportado'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Estado:</span>
+              <span className="text-sm font-medium">Permisos:</span>
               <span className="text-sm">
                 {permission === 'granted' && '✅ Concedido'}
                 {permission === 'denied' && '❌ Denegado'}
@@ -52,9 +79,21 @@ export default function TestNotificationsPage() {
             </div>
           </div>
 
-          <Button onClick={handleRequest} className="w-full" disabled={!isSupported}>
-            Solicitar Permisos de Notificación
-          </Button>
+          {error && (
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/30 dark:text-red-200">
+              <p className="font-medium">Error:</p>
+              <p className="mt-1">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button onClick={handleRequest} className="flex-1" disabled={!isSupported}>
+              Solicitar Permisos
+            </Button>
+            <Button onClick={handleRefresh} variant="outline" size="icon">
+              <IconRefresh className="h-4 w-4" />
+            </Button>
+          </div>
 
           {permission === 'denied' && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/30 dark:text-red-200">

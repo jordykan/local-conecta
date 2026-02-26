@@ -115,52 +115,67 @@ export function usePushNotifications() {
     }
 
     try {
+      console.log('[Push] Starting subscription process...')
       setState(prev => ({ ...prev, isLoading: true, error: null }))
 
+      console.log('[Push] Waiting for service worker...')
       const registration = await navigator.serviceWorker.ready
+      console.log('[Push] Service worker ready')
 
       // Verificar si ya existe una subscription
       let subscription = await registration.pushManager.getSubscription()
+      console.log('[Push] Existing subscription:', !!subscription)
 
       if (!subscription) {
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        console.log('[Push] VAPID key configured:', !!vapidPublicKey)
 
         if (!vapidPublicKey) {
           throw new Error('VAPID public key not configured')
         }
 
         // Crear nueva subscription
+        console.log('[Push] Creating new subscription...')
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
         })
+        console.log('[Push] New subscription created')
       }
 
       // Guardar subscription en Supabase
+      console.log('[Push] Getting auth session...')
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('[Push] Session exists:', !!session)
 
       if (!session) {
         throw new Error('Usuario no autenticado')
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/subscribe-push`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            subscription: subscription.toJSON()
-          })
-        }
-      )
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/subscribe-push`
+      console.log('[Push] Sending subscription to:', url)
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          subscription: subscription.toJSON()
+        })
+      })
+
+      console.log('[Push] Response status:', response.status)
 
       if (!response.ok) {
         const error = await response.json()
+        console.error('[Push] Server error:', error)
         throw new Error(error.error || 'Error al guardar subscription')
       }
+
+      const result = await response.json()
+      console.log('[Push] Server response:', result)
 
       setState(prev => ({
         ...prev,
