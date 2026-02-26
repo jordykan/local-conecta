@@ -1,7 +1,7 @@
 // Service Worker para Local Conecta PWA
-const CACHE_NAME = 'local-conecta-v1'
-const STATIC_CACHE = 'local-conecta-static-v1'
-const DYNAMIC_CACHE = 'local-conecta-dynamic-v1'
+const CACHE_NAME = 'local-conecta-v2'
+const STATIC_CACHE = 'local-conecta-static-v2'
+const DYNAMIC_CACHE = 'local-conecta-dynamic-v2'
 
 // Assets estáticos a cachear en la instalación
 const STATIC_ASSETS = [
@@ -94,7 +94,10 @@ self.addEventListener('fetch', (event) => {
 
 // Push: mostrar notificación
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received')
+  console.log('[SW] ========================================')
+  console.log('[SW] Push notification received!')
+  console.log('[SW] Event data:', event.data)
+  console.log('[SW] Has data:', !!event.data)
 
   let data = {
     title: 'Local Conecta',
@@ -106,11 +109,16 @@ self.addEventListener('push', (event) => {
 
   if (event.data) {
     try {
-      data = event.data.json()
+      const parsed = event.data.json()
+      console.log('[SW] Parsed data:', parsed)
+      data = parsed
     } catch (e) {
       console.error('[SW] Error parsing push data:', e)
+      console.log('[SW] Raw text:', event.data.text())
     }
   }
+
+  console.log('[SW] Notification data:', data)
 
   const options = {
     body: data.body,
@@ -121,11 +129,15 @@ self.addEventListener('push', (event) => {
     },
     vibrate: [200, 100, 200],
     tag: data.tag || 'default',
-    requireInteraction: false
+    requireInteraction: true // Changed to true for testing
   }
+
+  console.log('[SW] Showing notification with options:', options)
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)
+      .then(() => console.log('[SW] Notification shown successfully'))
+      .catch(err => console.error('[SW] Error showing notification:', err))
   )
 })
 
