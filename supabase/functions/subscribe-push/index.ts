@@ -7,14 +7,12 @@ const corsHeaders = {
 }
 
 interface SubscribePayload {
-  subscription: PushSubscriptionJSON
-}
-
-interface PushSubscriptionJSON {
-  endpoint: string
-  keys: {
-    p256dh: string
-    auth: string
+  subscription: {
+    endpoint: string
+    keys: {
+      p256dh: string
+      auth: string
+    }
   }
 }
 
@@ -25,101 +23,119 @@ serve(async (req) => {
   }
 
   try {
-    // Obtener el token de autorización
+    console.log('[Subscribe] Request received')
+
+    // Get user from auth header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('[Subscribe] No authorization header')
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
+        JSON.stringify({ error: 'No autorizado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      {
-        global: {
-          headers: { Authorization: authHeader }
-        }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[Subscribe] Supabase config missing')
+      throw new Error('Supabase configuration missing')
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: { Authorization: authHeader }
       }
-    )
+    })
 
-    // Verificar usuario autenticado
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (userError || !user) {
+    if (authError || !user) {
+      console.error('[Subscribe] Auth error:', authError)
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Usuario no autenticado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    console.log('[Subscribe] User authenticated:', user.id)
+
+    // Parse request body
     const { subscription }: SubscribePayload = await req.json()
 
-    // Validar subscription
     if (!subscription || !subscription.endpoint || !subscription.keys) {
+      console.error('[Subscribe] Invalid subscription data')
       return new Response(
-        JSON.stringify({ error: 'Invalid subscription object' }),
+        JSON.stringify({ error: 'Datos de suscripción inválidos' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Guardar o actualizar subscription
-    const { data, error } = await supabase
+    console.log('[Subscribe] Saving subscription for user:', user.id)
+
+    // Use service role client to insert subscription
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // Check if subscription already exists
+    const { data: existing } = await supabaseAdmin
       .from('push_subscriptions')
-      .upsert(
-        {
-          user_id: user.id,
-          subscription: subscription
-        },
-        {
-          onConflict: 'user_id,subscription',
-          ignoreDuplicates: false
-        }
-      )
-      .select()
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('subscription->>endpoint', subscription.endpoint)
       .single()
 
-    if (error) {
-      throw error
-    }
+    if (existing) {
+      console.log('[Subscribe] Subscription already exists, updating...')
 
-    // Crear preferencias por defecto si no existen
-    const { error: prefsError } = await supabase
-      .from('notification_preferences')
-      .upsert(
-        {
-          user_id: user.id,
-          notify_new_booking: true,
-          notify_booking_confirmed: true,
-          notify_booking_cancelled: true,
-          notify_new_message: true,
-          notify_new_review: true
-        },
-        {
-          onConflict: 'user_id',
-          ignoreDuplicates: true
-        }
+      // Update existing subscription
+      const { error: updateError } = await supabaseAdmin
+        .from('push_subscriptions')
+        .update({
+          subscription,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+
+      if (updateError) {
+        console.error('[Subscribe] Error updating subscription:', updateError)
+        throw updateError
+      }
+
+      console.log('[Subscribe] Subscription updated successfully')
+      return new Response(
+        JSON.stringify({ message: 'Suscripción actualizada exitosamente' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
-
-    if (prefsError) {
-      console.error('Error creating notification preferences:', prefsError)
     }
+
+    // Insert new subscription
+    const { error: insertError } = await supabaseAdmin
+      .from('push_subscriptions')
+      .insert({
+        user_id: user.id,
+        subscription
+      })
+
+    if (insertError) {
+      console.error('[Subscribe] Error inserting subscription:', insertError)
+      throw insertError
+    }
+
+    console.log('[Subscribe] Subscription saved successfully')
 
     return new Response(
-      JSON.stringify({
-        message: 'Subscription saved successfully',
-        data
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ message: 'Suscripción guardada exitosamente' }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error in subscribe-push:', error)
+    console.error('[Subscribe] Error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Error interno del servidor' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
