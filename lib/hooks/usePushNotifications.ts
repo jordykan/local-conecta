@@ -159,10 +159,12 @@ export function usePushNotifications() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
         },
         body: JSON.stringify({
-          subscription: subscription.toJSON()
+          subscription: subscription.toJSON(),
+          accessToken: session.access_token // Send token in body as fallback for iOS
         })
       })
 

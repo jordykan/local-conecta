@@ -14,6 +14,7 @@ interface SubscribePayload {
       auth: string
     }
   }
+  accessToken?: string // Fallback for iOS PWAs that don't send Authorization header
 }
 
 serve(async (req) => {
@@ -34,14 +35,24 @@ serve(async (req) => {
       throw new Error('Supabase configuration missing')
     }
 
-    // Get Authorization header (try both cases)
-    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+    // Parse request body first to get potential accessToken
+    const { subscription, accessToken }: SubscribePayload = await req.json()
+
+    // Get Authorization header (try multiple sources)
+    let authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+
+    // Fallback: if no header, try to get token from body (iOS PWA workaround)
+    if (!authHeader && accessToken) {
+      authHeader = `Bearer ${accessToken}`
+      console.log('[Subscribe] Using token from body (iOS fallback)')
+    }
+
     console.log('[Subscribe] Auth header present:', !!authHeader)
 
     if (!authHeader) {
-      console.error('[Subscribe] No authorization header')
+      console.error('[Subscribe] No authorization header or token in body')
       return new Response(
-        JSON.stringify({ error: 'No autorizado' }),
+        JSON.stringify({ error: 'No autorizado - falta token de acceso' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -62,15 +73,12 @@ serve(async (req) => {
     if (authError || !user) {
       console.error('[Subscribe] Auth error:', authError)
       return new Response(
-        JSON.stringify({ error: 'Usuario no autenticado' }),
+        JSON.stringify({ error: 'Usuario no autenticado', details: authError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     console.log('[Subscribe] User authenticated:', user.id)
-
-    // Parse request body
-    const { subscription }: SubscribePayload = await req.json()
 
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       console.error('[Subscribe] Invalid subscription data')
