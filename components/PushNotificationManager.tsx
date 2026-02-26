@@ -18,6 +18,14 @@ export function PushNotificationManager() {
   const [hasRequested, setHasRequested] = useState(false)
 
   useEffect(() => {
+    // Log para diagnóstico
+    console.log('[PushNotificationManager] State:', {
+      isStandalone,
+      isSupported,
+      permission,
+      hasRequested
+    })
+
     // Solo solicitar permisos si:
     // - La app está instalada (standalone mode)
     // - El navegador soporta notificaciones
