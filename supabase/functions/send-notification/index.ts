@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendPushNotification, type PushSubscription, type PushMessage } from '../_shared/web-push.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -109,25 +110,73 @@ serve(async (req) => {
       throw new Error('VAPID keys not configured')
     }
 
-    // Por ahora, simular el envío de notificaciones
-    // TODO: Implementar envío real usando Web Push Protocol
-    const results = subs.map(({ subscription }) => {
-      console.log('[Edge Function] Would send push to:', subscription.endpoint)
-      return {
-        success: true,
-        endpoint: subscription.endpoint,
-        note: 'Push notification queued (implementation pending)'
-      }
-    })
+    // Preparar el mensaje de notificación
+    const message: PushMessage = {
+      title,
+      body,
+      url,
+      tag,
+      icon
+    }
 
-    console.log('[Edge Function] Notifications processed successfully')
+    console.log('[Edge Function] Sending push notifications to', subs.length, 'subscriptions')
+
+    // Enviar notificaciones a todas las suscripciones del usuario
+    const results = await Promise.all(
+      subs.map(async ({ subscription }) => {
+        try {
+          console.log('[Edge Function] Sending to:', subscription.endpoint?.substring(0, 50) + '...')
+
+          const pushSub: PushSubscription = {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: subscription.keys.p256dh,
+              auth: subscription.keys.auth
+            }
+          }
+
+          const result = await sendPushNotification(
+            pushSub,
+            message,
+            vapidPublicKey,
+            vapidPrivateKey
+          )
+
+          if (result.success) {
+            console.log('[Edge Function] ✓ Sent successfully to:', subscription.endpoint?.substring(0, 50))
+          } else {
+            console.error('[Edge Function] ✗ Failed to send:', result.error)
+          }
+
+          return {
+            success: result.success,
+            endpoint: subscription.endpoint,
+            error: result.error
+          }
+        } catch (error) {
+          console.error('[Edge Function] ✗ Exception sending push:', error)
+          return {
+            success: false,
+            endpoint: subscription.endpoint,
+            error: error.message
+          }
+        }
+      })
+    )
+
+    const successCount = results.filter(r => r.success).length
+    console.log(`[Edge Function] Notifications sent: ${successCount}/${subs.length} successful`)
+
+    const successCount = results.filter(r => r.success).length
+    const failedCount = results.length - successCount
 
     return new Response(
       JSON.stringify({
-        message: 'Notifications processed',
+        message: successCount > 0 ? 'Notifications sent successfully' : 'All notifications failed',
         results,
         total: subs.length,
-        successful: results.filter(r => r.success).length
+        successful: successCount,
+        failed: failedCount
       }),
       {
         status: 200,
