@@ -43,6 +43,7 @@ export function FeaturedBusinessesSection({
             return (
               <BusinessCard
                 key={biz.id}
+                businessId={biz.id}
                 slug={biz.slug}
                 name={biz.name}
                 category={biz.categories?.name ?? "Sin categoría"}
@@ -53,6 +54,8 @@ export function FeaturedBusinessesSection({
                 logoUrl={biz.logo_url ?? undefined}
                 rating={4.5}
                 isOpen={isOpen}
+                isFeatured={biz.is_featured}
+                isFavorited={false}
               />
             )
           })}

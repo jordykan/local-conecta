@@ -1,7 +1,7 @@
 "use client"
 
 import { IconLink } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
 export function ShareButton() {
@@ -14,7 +14,7 @@ export function ShareButton() {
         })
       } else {
         await navigator.clipboard.writeText(window.location.href)
-        sileo.success({ title: "Enlace copiado" })
+        toast.success("Enlace copiado")
       }
     } catch {
       // User cancelled share dialog

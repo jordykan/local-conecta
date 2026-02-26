@@ -6,10 +6,11 @@ import { BusinessCTASection } from "@/components/landing/BusinessCTASection"
 import { getBusinessesDirectory } from "@/lib/queries/business"
 
 export default async function HomePage() {
-  const { data: businesses } = await getBusinessesDirectory({})
+  // Get all businesses (already sorted by is_featured first, then created_at)
+  const { data: allBusinesses } = await getBusinessesDirectory({})
 
-  // Take first 8 for the featured section
-  const featured = (businesses ?? []).slice(0, 8)
+  // Take first 8 businesses (featured will appear first)
+  const featured = (allBusinesses ?? []).slice(0, 8)
 
   return (
     <>

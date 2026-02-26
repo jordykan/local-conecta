@@ -9,7 +9,7 @@ import {
   IconLock,
   IconUser,
 } from "@tabler/icons-react";
-import { sileo } from "sileo";
+import { toast } from "sonner";
 import { register, loginWithGoogle } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,10 +52,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (state?.error) {
-      sileo.error({
-        title: "No se pudo crear la cuenta",
-        description: state.error,
-      });
+      toast.error(state.error);
     }
   }, [state]);
 

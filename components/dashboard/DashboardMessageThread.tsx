@@ -5,7 +5,7 @@ import { IconSend, IconArrowLeft } from "@tabler/icons-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { MessageWithSender } from "@/lib/queries/messages"
 import { replyAsBusinessOwner } from "@/app/dashboard/messages/actions"
 import { Button } from "@/components/ui/button"
@@ -45,7 +45,7 @@ export function DashboardMessageThread({
         content
       )
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
         setContent("")
       }

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
-import { IconMenu2, IconUser, IconCalendarEvent, IconMessageCircle, IconLogout, IconChevronDown, IconLayoutDashboard, IconSun, IconMoon } from "@tabler/icons-react"
+import { IconMenu2, IconUser, IconCalendarEvent, IconMessageCircle, IconLogout, IconChevronDown, IconLayoutDashboard, IconSun, IconMoon, IconShield } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -137,6 +137,14 @@ export function Navbar({ user }: NavbarProps) {
                   </p>
                 </div>
                 <DropdownMenuSeparator />
+                {(user.role === "community_admin" || user.role === "super_admin") && (
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2">
+                      <IconShield className="size-4 text-orange-500" />
+                      Panel Admin
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 {user.role === "business_owner" && (
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2">
@@ -234,6 +242,17 @@ export function Navbar({ user }: NavbarProps) {
                       </p>
                     </div>
                   </div>
+                  {(user.role === "community_admin" || user.role === "super_admin") && (
+                    <SheetClose asChild>
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <IconShield className="size-4 text-orange-500" />
+                        Panel Admin
+                      </Link>
+                    </SheetClose>
+                  )}
                   {user.role === "business_owner" && (
                     <SheetClose asChild>
                       <Link

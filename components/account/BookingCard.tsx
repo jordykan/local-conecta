@@ -8,7 +8,7 @@ import {
   IconPackage,
   IconX,
 } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import {
   BOOKING_STATUS_LABELS,
   BOOKING_STATUS_VARIANT,
@@ -57,7 +57,7 @@ export function BookingCard({ booking }: BookingCardProps) {
 
   function handleCancel() {
     if (!reason.trim()) {
-      sileo.error({ title: "Indica el motivo de la cancelacion" })
+      toast.error("Indica el motivo de la cancelación")
       return
     }
 
@@ -65,9 +65,9 @@ export function BookingCard({ booking }: BookingCardProps) {
       const result = await cancelBooking(booking.id, reason.trim())
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Reserva cancelada" })
+        toast.success("Reserva cancelada")
         setDialogOpen(false)
         setReason("")
       }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 import { HoursForm } from "@/components/hours/HoursForm"
 import { Button } from "@/components/ui/button"
@@ -84,9 +84,9 @@ export default function HoursPage() {
     startTransition(async () => {
       const result = await updateBusinessHours(businessId, hours)
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Horarios guardados" })
+        toast.success("Horarios guardados")
       }
     })
   }

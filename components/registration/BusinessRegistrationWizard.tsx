@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { Category, Community } from "@/lib/types/database"
 import type {
   BusinessBasicData,
@@ -100,13 +100,10 @@ export function BusinessRegistrationWizard({
     startTransition(async () => {
       const result = await registerBusiness(data)
       if (result?.error) {
-        sileo.error({
-          title: "Error al registrar",
-          description: result.error,
-        })
+        toast.error(result.error)
         return
       }
-      sileo.success({ title: "Negocio registrado correctamente" })
+      toast.success("Negocio registrado correctamente")
       router.push("/dashboard")
     })
   }

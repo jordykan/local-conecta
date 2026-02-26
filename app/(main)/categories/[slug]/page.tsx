@@ -61,6 +61,7 @@ export default async function CategoryPage({ params }: PageProps) {
             return (
               <BusinessCard
                 key={biz.id}
+                businessId={biz.id}
                 slug={biz.slug}
                 name={biz.name}
                 category={biz.categories?.name ?? "Sin categoría"}
@@ -69,6 +70,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 logoUrl={biz.logo_url ?? undefined}
                 rating={4.5}
                 isOpen={isOpen}
+                isFavorited={false}
               />
             )
           })}

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { IconEdit, IconTrash, IconPhoto, IconCalendarEvent, IconClock, IconPackage, IconInfoCircle } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { ProductService, Business } from "@/lib/types/database"
 import { PRICE_TYPE } from "@/lib/constants"
 import { Card, CardContent } from "@/components/ui/card"
@@ -54,7 +54,7 @@ export function ProductCard({ product, editable, onEdit, onBook, businessInfo, o
       const result = await toggleProductAvailability(product.id, checked)
       if (result?.error) {
         setAvailable(!checked)
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       }
     })
   }
@@ -63,9 +63,9 @@ export function ProductCard({ product, editable, onEdit, onBook, businessInfo, o
     startDelete(async () => {
       const result = await deleteProduct(product.id)
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Producto eliminado" })
+        toast.success("Producto eliminado")
       }
     })
   }
@@ -83,9 +83,13 @@ export function ProductCard({ product, editable, onEdit, onBook, businessInfo, o
           </div>
         )}
 
-        <div className="relative aspect-[4/3] bg-muted">
+        <div className="relative h-48 w-full overflow-hidden bg-muted">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="size-full object-cover" />
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="flex size-full items-center justify-center">
               <IconPhoto className="size-8 text-muted-foreground/30" />

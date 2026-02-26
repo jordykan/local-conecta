@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { ReviewWithAuthor } from "@/lib/queries/reviews"
 import {
   replyToReview,
@@ -40,9 +40,9 @@ export function OwnerReplyForm({
       })
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Respuesta publicada" })
+        toast.success("Respuesta publicada")
         onOpenChange(false)
       }
     })
@@ -53,9 +53,9 @@ export function OwnerReplyForm({
       const result = await deleteOwnerReply(review.id)
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Respuesta eliminada" })
+        toast.success("Respuesta eliminada")
         setOwnerReply("")
         onOpenChange(false)
       }

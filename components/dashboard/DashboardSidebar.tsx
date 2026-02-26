@@ -11,6 +11,7 @@ import {
   IconMessage,
   IconSpeakerphone,
   IconStar,
+  IconChartBar,
   IconArrowLeft,
   IconMenu2,
   IconLogout,
@@ -57,6 +58,7 @@ const navItems: Array<{
     icon: IconSpeakerphone,
   },
   { href: "/dashboard/reviews", label: "Reseñas", icon: IconStar },
+  { href: "/dashboard/analytics", label: "Analíticas", icon: IconChartBar },
 ];
 
 const STATUS_MAP: Record<

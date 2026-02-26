@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { ProductService } from "@/lib/types/database"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
@@ -104,7 +104,7 @@ export function ProductForm({
 
       setImageUrl(urlData.publicUrl)
     } catch {
-      sileo.error({ title: "Error al subir imagen" })
+      toast.error("Error al subir imagen")
       setImagePreview(product?.image_url ?? "")
       setImageUrl(product?.image_url ?? "")
     } finally {
@@ -151,11 +151,9 @@ export function ProductForm({
         : await createProduct(businessId, data)
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({
-          title: isEdit ? "Producto actualizado" : "Producto creado",
-        })
+        toast.success(isEdit ? "Producto actualizado" : "Producto creado")
         onOpenChange(false)
         if (!isEdit) {
           setName("")

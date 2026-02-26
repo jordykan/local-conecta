@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { Promotion } from "@/lib/types/database"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
@@ -108,7 +108,7 @@ export function PromotionForm({
 
       setImageUrl(urlData.publicUrl)
     } catch {
-      sileo.error({ title: "Error al subir imagen" })
+      toast.error("Error al subir imagen")
       setImagePreview(promotion?.image_url ?? "")
       setImageUrl(promotion?.image_url ?? "")
     } finally {
@@ -151,12 +151,10 @@ export function PromotionForm({
         if (result.fieldErrors) {
           setErrors(result.fieldErrors)
         } else {
-          sileo.error({ title: "Error", description: result.error })
+          toast.error(result.error)
         }
       } else {
-        sileo.success({
-          title: isEdit ? "Promocion actualizada" : "Promocion creada",
-        })
+        toast.success(isEdit ? "Promoción actualizada" : "Promoción creada")
         onOpenChange(false)
         if (!isEdit) {
           setTitle("")

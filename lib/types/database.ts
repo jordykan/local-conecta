@@ -505,6 +505,85 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          id: string
+          user_id: string
+          business_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_views: {
+        Row: {
+          id: string
+          business_id: string
+          visitor_id: string | null
+          viewed_at: string
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          visitor_id?: string | null
+          viewed_at?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          business_id?: string
+          visitor_id?: string | null
+          viewed_at?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -529,3 +608,5 @@ export type Booking = Database["public"]["Tables"]["bookings"]["Row"]
 export type Promotion = Database["public"]["Tables"]["promotions"]["Row"]
 export type Message = Database["public"]["Tables"]["messages"]["Row"]
 export type Review = Database["public"]["Tables"]["reviews"]["Row"]
+export type Favorite = Database["public"]["Tables"]["favorites"]["Row"]
+export type ProfileView = Database["public"]["Tables"]["profile_views"]["Row"]

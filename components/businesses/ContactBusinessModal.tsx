@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { IconSend } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { sendMessage } from "@/app/(main)/account/actions"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -46,7 +46,7 @@ export function ContactBusinessModal({
       )
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
         setSuccess(true)
       }

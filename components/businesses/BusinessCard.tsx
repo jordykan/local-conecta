@@ -1,10 +1,12 @@
 import Link from "next/link"
-import { IconStar, IconMapPin } from "@tabler/icons-react"
+import { IconStar, IconMapPin, IconStarFilled } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { PromotionBadge } from "./PromotionBadge"
+import { FavoriteButton } from "@/components/shared/FavoriteButton"
 
 export interface BusinessCardProps {
+  businessId: string
   slug: string
   name: string
   category: string
@@ -15,11 +17,14 @@ export interface BusinessCardProps {
   rating: number
   isOpen: boolean
   hasPromotions?: boolean
+  isFeatured?: boolean
   averageRating?: number
   totalReviews?: number
+  isFavorited?: boolean
 }
 
 export function BusinessCard({
+  businessId,
   slug,
   name,
   category,
@@ -30,8 +35,10 @@ export function BusinessCard({
   isOpen,
   logoUrl,
   hasPromotions,
+  isFeatured = false,
   averageRating = 0,
   totalReviews = 0,
+  isFavorited = false,
 }: BusinessCardProps) {
   return (
     <Link href={`/businesses/${slug}`} className="group min-w-[260px]">
@@ -54,17 +61,28 @@ export function BusinessCard({
               <IconMapPin className="size-10 text-primary/30" stroke={1.5} />
             </div>
           )}
-          {hasPromotions && (
-            <PromotionBadge className="absolute left-3 top-3" />
-          )}
+          <div className="absolute left-3 top-3 flex flex-col gap-2">
+            {hasPromotions && <PromotionBadge />}
+          </div>
+          <FavoriteButton
+            businessId={businessId}
+            isFavorited={isFavorited}
+            size="sm"
+            className="absolute right-2 top-2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+          />
         </div>
 
         {/* Content */}
         <CardContent className="flex flex-1 flex-col gap-2 p-4">
           <div>
-            <h3 className="text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
-              {name}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                {name}
+              </h3>
+              {isFeatured && (
+                <IconStarFilled className="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0" />
+              )}
+            </div>
             <p className="mt-0.5 text-xs text-muted-foreground">{category}</p>
           </div>
 

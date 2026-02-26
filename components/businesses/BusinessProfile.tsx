@@ -4,16 +4,19 @@ import {
   IconCircleFilled,
   IconBrandWhatsapp,
   IconPhone,
+  IconStarFilled,
 } from "@tabler/icons-react"
 import type { Business, Category } from "@/lib/types/database"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ShareButton } from "./ShareButton"
+import { FavoriteButton } from "@/components/shared/FavoriteButton"
 
 interface BusinessProfileProps {
   business: Business & { categories: Category | null }
   isOpen: boolean
+  isFavorited?: boolean
 }
 
 function formatWhatsAppUrl(number: string): string {
@@ -21,7 +24,11 @@ function formatWhatsAppUrl(number: string): string {
   return `https://wa.me/${cleaned}`
 }
 
-export function BusinessProfile({ business, isOpen }: BusinessProfileProps) {
+export function BusinessProfile({
+  business,
+  isOpen,
+  isFavorited = false,
+}: BusinessProfileProps) {
   return (
     <div>
       {/* Cover */}
@@ -72,6 +79,12 @@ export function BusinessProfile({ business, isOpen }: BusinessProfileProps) {
                 {business.categories.name}
               </Badge>
             )}
+            {business.is_featured && (
+              <Badge className="gap-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
+                <IconStarFilled className="h-3 w-3" />
+                Destacado
+              </Badge>
+            )}
             {business.address && (
               <span className="flex items-center gap-1 text-sm text-muted-foreground">
                 <IconMapPin className="size-3.5 shrink-0" />
@@ -107,7 +120,7 @@ export function BusinessProfile({ business, isOpen }: BusinessProfileProps) {
           )}
 
           {/* CTA buttons */}
-          <div className="mt-5 flex gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             {business.whatsapp && (
               <Button
                 asChild
@@ -135,6 +148,13 @@ export function BusinessProfile({ business, isOpen }: BusinessProfileProps) {
                 </a>
               </Button>
             )}
+            <FavoriteButton
+              businessId={business.id}
+              isFavorited={isFavorited}
+              variant="outline"
+              size="default"
+              showLabel
+            />
           </div>
         </div>
 

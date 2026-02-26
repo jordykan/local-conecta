@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { IconBrandGoogle, IconMail, IconLock } from "@tabler/icons-react";
-import { sileo } from "sileo";
+import { toast } from "sonner";
 import { login, loginWithGoogle } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,22 +55,17 @@ function LoginForm() {
   useEffect(() => {
     if (authError && !shownAuthError.current) {
       shownAuthError.current = true;
-      sileo.error({
-        title: "Error de autenticacion",
-        description:
-          authError === "google"
-            ? "No se pudo conectar con Google. Intenta de nuevo."
-            : "Error al iniciar sesion. Intenta de nuevo.",
-      });
+      toast.error(
+        authError === "google"
+          ? "No se pudo conectar con Google. Intenta de nuevo."
+          : "Error al iniciar sesión. Intenta de nuevo."
+      );
     }
   }, [authError]);
 
   useEffect(() => {
     if (state?.error) {
-      sileo.error({
-        title: "No se pudo iniciar sesion",
-        description: state.error,
-      });
+      toast.error(state.error);
     }
   }, [state]);
 

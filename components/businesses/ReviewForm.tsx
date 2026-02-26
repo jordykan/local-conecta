@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { Review } from "@/lib/types/database"
 import {
   createReview,
@@ -53,12 +53,10 @@ export function ReviewForm({
         if (result.fieldErrors) {
           setErrors(result.fieldErrors)
         } else {
-          sileo.error({ title: "Error", description: result.error })
+          toast.error(result.error)
         }
       } else {
-        sileo.success({
-          title: isEdit ? "Reseña actualizada" : "Reseña publicada",
-        })
+        toast.success(isEdit ? "Reseña actualizada" : "Reseña publicada")
         onOpenChange(false)
         if (!isEdit) {
           setRating(0)

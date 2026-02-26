@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { IconUser } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { profileUpdateSchema } from "@/lib/validations/profile"
 import { updateProfile } from "@/app/(main)/account/actions"
 import { Button } from "@/components/ui/button"
@@ -65,9 +65,9 @@ export function ProfileForm({
       const result = await updateProfile(parsed.data)
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Perfil actualizado" })
+        toast.success("Perfil actualizado")
       }
     })
   }

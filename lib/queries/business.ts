@@ -91,6 +91,7 @@ export async function getBusinessesDirectory(params: {
   q?: string
   categorySlug?: string
   hasPromotions?: boolean
+  isFeatured?: boolean
 }) {
   const supabase = await createClient()
   const now = new Date().toISOString()
@@ -124,6 +125,10 @@ export async function getBusinessesDirectory(params: {
     if (cat) {
       query = query.eq("category_id", cat.id)
     }
+  }
+
+  if (params.isFeatured) {
+    query = query.eq("is_featured", true)
   }
 
   const result = await query.returns<BusinessDirectoryItem[]>()

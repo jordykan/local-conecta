@@ -9,6 +9,7 @@ import {
   countReviews,
   canUserReview,
 } from "@/lib/queries/reviews";
+import { isFavorited } from "@/lib/queries/favorites";
 import { BusinessProfile } from "@/components/businesses/BusinessProfile";
 import {
   BusinessHoursDisplay,
@@ -20,6 +21,7 @@ import { ContactBusinessButton } from "@/components/businesses/ContactBusinessBu
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PromotionsSection } from "@/components/businesses/PromotionsSection";
 import { ReviewsSection } from "@/components/businesses/ReviewsSection";
+import { ProfileViewTracker } from "@/components/businesses/ProfileViewTracker";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -78,6 +80,7 @@ export default async function BusinessPage({ params }: PageProps) {
     totalReviews,
     userCanReview,
     userReviewData,
+    userFavorited,
   ] = await Promise.all([
     getReviewsByBusiness(business.id),
     getAverageRating(business.id),
@@ -93,12 +96,22 @@ export default async function BusinessPage({ params }: PageProps) {
           .eq("business_id", business.id)
           .single()
       : Promise.resolve({ data: null }),
+    user
+      ? isFavorited(user.id, business.id)
+      : Promise.resolve(false),
   ]);
 
   return (
     <div className="pb-16">
+      {/* Track profile view */}
+      <ProfileViewTracker businessId={business.id} />
+
       {/* Hero with CTAs */}
-      <BusinessProfile business={business} isOpen={isOpen} />
+      <BusinessProfile
+        business={business}
+        isOpen={isOpen}
+        isFavorited={userFavorited}
+      />
 
       {/* Content */}
       <div className="mx-auto mt-8 max-w-5xl px-4 sm:px-6">

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
-import { SileoToaster } from "@/components/shared/SileoToaster";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import NextTopLoader from "nextjs-toploader";
@@ -54,7 +54,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <SileoToaster />
+          <Toaster closeButton={true} position="top-right" richColors={true} />
         </ThemeProvider>
       </body>
     </html>

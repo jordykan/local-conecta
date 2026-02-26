@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect } from "react"
 import { IconSend } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { sendMessage } from "@/app/(main)/account/actions"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,7 @@ export function MessageThread({
       const result = await sendMessage(conversationId, businessId, content.trim())
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
         setContent("")
       }

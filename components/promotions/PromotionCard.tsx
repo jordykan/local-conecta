@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { IconEdit, IconTrash, IconPhoto, IconTag, IconCalendar } from "@tabler/icons-react"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { Promotion } from "@/lib/types/database"
@@ -71,10 +71,7 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
 
   function handleToggle(checked: boolean) {
     if (expired) {
-      sileo.error({
-        title: "Promoción expirada",
-        description: "No puedes activar una promoción que ya expiró"
-      })
+      toast.error("No puedes activar una promoción que ya expiró")
       return
     }
 
@@ -83,7 +80,7 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
       const result = await togglePromotionStatus(promotion.id, checked)
       if (result?.error) {
         setActive(!checked)
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       }
     })
   }
@@ -92,9 +89,9 @@ export function PromotionCard({ promotion, onEdit }: PromotionCardProps) {
     startDelete(async () => {
       const result = await deletePromotion(promotion.id)
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({ title: "Promoción eliminada" })
+        toast.success("Promoción eliminada")
       }
     })
   }

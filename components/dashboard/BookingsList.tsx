@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { sileo } from "sileo"
+import { toast } from "sonner"
 import type { BookingWithClient } from "@/lib/queries/bookings"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -64,16 +64,15 @@ function BookingActionCard({
       }
 
       if (result?.error) {
-        sileo.error({ title: "Error", description: result.error })
+        toast.error(result.error)
       } else {
-        sileo.success({
-          title:
-            action === "confirm"
-              ? "Reserva confirmada"
-              : action === "complete"
-                ? "Reserva completada"
-                : "Reserva cancelada",
-        })
+        toast.success(
+          action === "confirm"
+            ? "Reserva confirmada"
+            : action === "complete"
+              ? "Reserva completada"
+              : "Reserva cancelada"
+        )
       }
     })
   }
