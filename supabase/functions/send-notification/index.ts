@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import webpush from 'https://esm.sh/web-push@3.6.6'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,14 +79,17 @@ serve(async (req) => {
       throw new Error('VAPID keys not configured')
     }
 
+    // Configurar VAPID details para web-push
+    webpush.setVapidDetails(
+      'mailto:noreply@localconecta.com',
+      vapidPublicKey,
+      vapidPrivateKey
+    )
+
     // Enviar notificación a cada subscription usando web-push
     const results = await Promise.all(
       subs.map(async ({ subscription }) => {
         try {
-          // Usar web-push standard
-          const endpoint = subscription.endpoint
-          const keys = subscription.keys
-
           const payload = JSON.stringify({
             title,
             body,
@@ -95,18 +99,16 @@ serve(async (req) => {
             tag: tag || 'default'
           })
 
-          // Por ahora solo registramos, la implementación real de web-push
-          // requiere una librería específica que no está disponible en Deno
-          // Se recomienda usar un servicio como FCM o implementar web-push manualmente
-          console.log('Sending push notification:', {
-            endpoint,
-            payload
-          })
+          console.log('Sending push notification to:', subscription.endpoint)
 
-          return { success: true, endpoint }
+          // Enviar notificación usando web-push
+          await webpush.sendNotification(subscription, payload)
+
+          console.log('Push notification sent successfully')
+          return { success: true, endpoint: subscription.endpoint }
         } catch (error) {
           console.error('Error sending push:', error)
-          return { success: false, error: error.message }
+          return { success: false, error: error.message, endpoint: subscription.endpoint }
         }
       })
     )
