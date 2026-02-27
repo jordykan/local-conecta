@@ -241,6 +241,7 @@ export function MessageThread({
                       ? "rounded-tr-md bg-primary text-primary-foreground"
                       : "rounded-tl-md bg-card border border-border/60"
                   )}
+                  suppressHydrationWarning
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {msg.content}
@@ -252,6 +253,7 @@ export function MessageThread({
                         ? "text-primary-foreground/60"
                         : "text-muted-foreground"
                     )}
+                    suppressHydrationWarning
                   >
                     <span suppressHydrationWarning>
                       {new Date(msg.created_at).toLocaleTimeString("es-MX", {

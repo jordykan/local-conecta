@@ -27,8 +27,12 @@ export function useRealtimeMessages({
   }, [onNewMessage])
 
   // Update messages when initialMessages change (e.g., page refresh)
+  // Only reset if we don't have messages yet
   useEffect(() => {
-    setMessages(initialMessages)
+    if (messages.length === 0 || initialMessages.length > messages.length) {
+      console.log("[useRealtimeMessages] Resetting messages to initialMessages")
+      setMessages(initialMessages)
+    }
   }, [initialMessages])
 
   // Subscribe to new messages
