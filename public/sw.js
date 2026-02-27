@@ -1,182 +1,166 @@
-// Service Worker para Local Conecta PWA
-const CACHE_NAME = 'local-conecta-v2'
-const STATIC_CACHE = 'local-conecta-static-v2'
-const DYNAMIC_CACHE = 'local-conecta-dynamic-v2'
+/* =====================================================
+   Local Conecta - Service Worker (iOS Safe Version)
+   Compatible:
+   ✅ iOS PWA
+   ✅ Android
+   ✅ Desktop
+===================================================== */
 
-// Assets estáticos a cachear en la instalación
-const STATIC_ASSETS = [
-  '/',
-  '/offline.html',
-  '/icon.svg',
-  '/manifest.json'
-]
+const STATIC_CACHE = "local-conecta-static-v3";
+const DYNAMIC_CACHE = "local-conecta-dynamic-v3";
 
-// Instalación: cachear assets estáticos
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...')
+const STATIC_ASSETS = ["/", "/offline.html", "/manifest.json", "/icon.svg"];
+
+/* ===============================
+   INSTALL
+================================ */
+self.addEventListener("install", (event) => {
+  console.log("[SW] Installing...");
 
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[SW] Caching static assets')
-      return cache.addAll(STATIC_ASSETS)
-    }).then(() => {
-      console.log('[SW] Skip waiting')
-      return self.skipWaiting()
-    })
-  )
-})
+      return cache.addAll(STATIC_ASSETS);
+    }),
+  );
 
-// Activación: limpiar cachés antiguas
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...')
+  self.skipWaiting();
+});
+
+/* ===============================
+   ACTIVATE
+================================ */
+self.addEventListener("activate", (event) => {
+  console.log("[SW] Activating...");
 
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
-          .map((key) => {
-            console.log('[SW] Deleting old cache:', key)
-            return caches.delete(key)
-          })
-      )
-    }).then(() => {
-      console.log('[SW] Claiming clients')
-      return self.clients.claim()
-    })
-  )
-})
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
+            .map((key) => caches.delete(key)),
+        ),
+      ),
+  );
 
-// Fetch: estrategia network-first con fallback a caché
-self.addEventListener('fetch', (event) => {
-  const { request } = event
-  const url = new URL(request.url)
+  self.clients.claim();
+});
 
-  // Solo cachear requests del mismo origen
-  if (url.origin !== location.origin) {
-    return
-  }
+/* ===============================
+   FETCH (Network First)
+================================ */
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
 
-  // Estrategia: Network First con fallback a caché
+  if (url.origin !== location.origin) return;
+
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Si la respuesta es válida, cachearla en dynamic cache
         if (response && response.status === 200) {
-          const responseClone = response.clone()
+          const clone = response.clone();
           caches.open(DYNAMIC_CACHE).then((cache) => {
-            cache.put(request, responseClone)
-          })
+            cache.put(request, clone);
+          });
         }
-        return response
+        return response;
       })
-      .catch(() => {
-        // Si falla network, intentar desde caché
-        return caches.match(request).then((cached) => {
-          if (cached) {
-            return cached
+      .catch(() =>
+        caches.match(request).then((cached) => {
+          if (cached) return cached;
+
+          if (request.destination === "document") {
+            return caches.match("/offline.html");
           }
 
-          // Si es navegación y no hay caché, mostrar página offline
-          if (request.destination === 'document') {
-            return caches.match('/offline.html')
-          }
+          return new Response("Offline", { status: 503 });
+        }),
+      ),
+  );
+});
 
-          // Para otros recursos, retornar error
-          return new Response('Network error', {
-            status: 408,
-            headers: { 'Content-Type': 'text/plain' }
-          })
-        })
-      })
-  )
-})
+/* ===============================
+   PUSH (🔥 iOS SAFE)
+================================ */
+self.addEventListener("push", (event) => {
+  console.log("[SW] PUSH RECEIVED");
 
-// Push: mostrar notificación
-self.addEventListener('push', (event) => {
-  console.log('[SW] ========================================')
-  console.log('[SW] Push notification received!')
-  console.log('[SW] Event data:', event.data)
-  console.log('[SW] Has data:', !!event.data)
-
-  let data = {
-    title: 'Local Conecta',
-    body: 'Tienes una nueva notificación',
-    icon: '/icon.svg',
-    badge: '/icon.svg',
-    url: '/'
-  }
+  let data = {};
 
   if (event.data) {
     try {
-      const parsed = event.data.json()
-      console.log('[SW] Parsed data:', parsed)
-      data = parsed
-    } catch (e) {
-      console.error('[SW] Error parsing push data:', e)
-      console.log('[SW] Raw text:', event.data.text())
+      data = event.data.json();
+    } catch (err) {
+      try {
+        data = JSON.parse(event.data.text());
+      } catch {
+        data = {
+          title: "Local Conecta",
+          body: event.data.text(),
+        };
+      }
     }
   }
 
-  console.log('[SW] Notification data:', data)
+  const title = data.title || "Local Conecta";
 
   const options = {
-    body: data.body,
-    icon: data.icon || '/icon.svg',
-    badge: data.badge || '/icon.svg',
+    body: data.body || "Nueva notificación",
+    icon: "/icon.svg",
+    badge: "/icon.svg",
     data: {
-      url: data.url || '/'
+      url: data.url || "/",
     },
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'default',
-    requireInteraction: true // Changed to true for testing
-  }
-
-  console.log('[SW] Showing notification with options:', options)
+    tag: data.tag || "default",
+  };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
-      .then(() => console.log('[SW] Notification shown successfully'))
-      .catch(err => console.error('[SW] Error showing notification:', err))
-  )
-})
+    self.registration
+      .showNotification(title, options)
+      .then(() => console.log("[SW] Notification shown"))
+      .catch((err) => console.error("[SW] Notification error:", err)),
+  );
+});
 
-// Notification Click: abrir URL
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked')
+/* ===============================
+   NOTIFICATION CLICK
+================================ */
+self.addEventListener("notificationclick", (event) => {
+  console.log("[SW] Notification clicked");
 
-  event.notification.close()
+  event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || '/'
+  const urlToOpen = event.notification.data?.url || "/";
 
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then((clientList) => {
-      // Si ya hay una ventana abierta con la URL, enfocarla
-      for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus()
+    clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(urlToOpen) && "focus" in client) {
+            return client.focus();
+          }
         }
-      }
 
-      // Si no, abrir nueva ventana
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen)
-      }
-    })
-  )
-})
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      }),
+  );
+});
 
-// Background Sync (futuro)
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag)
+/* ===============================
+   ERROR DEBUGGING
+================================ */
+self.addEventListener("error", (e) => {
+  console.error("[SW] Error:", e.message);
+});
 
-  if (event.tag === 'sync-messages') {
-    event.waitUntil(
-      // Aquí se pueden sincronizar mensajes offline
-      Promise.resolve()
-    )
-  }
-})
+self.addEventListener("unhandledrejection", (e) => {
+  console.error("[SW] Unhandled rejection:", e.reason);
+});
