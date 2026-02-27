@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { IconBell, IconRefresh } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { sendTestNotification } from './actions'
 
 export default function TestNotificationsPage() {
   const { permission, isSupported, requestPermission, subscription, error } = usePushNotifications()
   const { isStandalone } = usePWA()
   const [userId, setUserId] = useState<string | null>(null)
   const [logs, setLogs] = useState<string[]>([])
+  const [isPending, startTransition] = useTransition()
   const supabase = createClient()
 
   useEffect(() => {
@@ -69,54 +71,31 @@ export default function TestNotificationsPage() {
     window.location.reload()
   }
 
-  const handleSendTestNotification = async () => {
+  const handleSendTestNotification = () => {
     if (!userId) {
       toast.error('No hay usuario autenticado')
       return
     }
 
-    try {
-      console.log('[Test] Sending test notification...')
-      const { data: { session } } = await supabase.auth.getSession()
+    startTransition(async () => {
+      try {
+        console.log('[Test] Sending test notification...')
 
-      if (!session) {
-        toast.error('No hay sesión activa')
-        return
-      }
+        const result = await sendTestNotification()
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-notification`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            userId: userId,
-            title: '🧪 Notificación de Prueba',
-            body: 'Si ves esto, ¡las notificaciones funcionan! 🎉',
-            url: '/test-notifications',
-            tag: 'test',
-            icon: '/icon.svg'
-          })
+        if (!result.success) {
+          console.error('[Test] Error:', result.error)
+          toast.error(`Error: ${result.error || 'Error desconocido'}`)
+          return
         }
-      )
 
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('[Test] Error:', error)
-        toast.error(`Error: ${error.error || 'Error desconocido'}`)
-        return
+        console.log('[Test] Notification sent successfully')
+        toast.success('Notificación enviada! Revisa tu iPhone 📱')
+      } catch (error) {
+        console.error('[Test] Exception:', error)
+        toast.error('Error al enviar notificación')
       }
-
-      const result = await response.json()
-      console.log('[Test] Result:', result)
-      toast.success('Notificación enviada! Revisa tu iPhone')
-    } catch (error) {
-      console.error('[Test] Exception:', error)
-      toast.error('Error al enviar notificación')
-    }
+    })
   }
 
   return (
@@ -180,8 +159,9 @@ export default function TestNotificationsPage() {
               onClick={handleSendTestNotification}
               variant="secondary"
               className="w-full"
+              disabled={isPending}
             >
-              🧪 Enviar Notificación de Prueba
+              {isPending ? 'Enviando...' : '🧪 Enviar Notificación de Prueba'}
             </Button>
           )}
 
