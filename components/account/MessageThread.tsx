@@ -253,7 +253,7 @@ export function MessageThread({
                         : "text-muted-foreground"
                     )}
                   >
-                    <span>
+                    <span suppressHydrationWarning>
                       {new Date(msg.created_at).toLocaleTimeString("es-MX", {
                         hour: "2-digit",
                         minute: "2-digit",
