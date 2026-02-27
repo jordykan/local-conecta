@@ -55,7 +55,18 @@ export function DashboardHeader({ business, user }: DashboardHeaderProps) {
   const pathname = usePathname()
   const [, startTransition] = useTransition()
 
-  const pageTitle = PAGE_TITLES[pathname] ?? "Dashboard"
+  // Handle dynamic routes like /dashboard/messages/[conversationId]
+  let pageTitle = PAGE_TITLES[pathname]
+  if (!pageTitle) {
+    if (pathname.startsWith("/dashboard/messages/")) {
+      pageTitle = "Mensajes"
+    } else if (pathname.startsWith("/dashboard/products/")) {
+      pageTitle = "Productos y servicios"
+    } else {
+      pageTitle = "Dashboard"
+    }
+  }
+
   const isRoot = pathname === "/dashboard"
 
   function handleLogout() {

@@ -146,13 +146,25 @@ serve(async (req) => {
           if (result.success) {
             console.log('[Edge Function] ✓ Sent successfully to:', subscription.endpoint?.substring(0, 50))
           } else {
-            console.error('[Edge Function] ✗ Failed to send:', result.error)
+            console.error('[Edge Function] ✗ Failed to send:', result.error, 'Status:', result.statusCode)
+
+            // If subscription is invalid (410 Gone, 404 Not Found, etc.), remove it
+            if (result.statusCode === 410 || result.statusCode === 404) {
+              console.log('[Edge Function] Removing invalid subscription (status:', result.statusCode, ')')
+              await supabase
+                .from('push_subscriptions')
+                .delete()
+                .filter('subscription->>endpoint', 'eq', subscription.endpoint)
+
+              console.log('[Edge Function] Invalid subscription removed')
+            }
           }
 
           return {
             success: result.success,
             endpoint: subscription.endpoint,
-            error: result.error
+            error: result.error,
+            statusCode: result.statusCode
           }
         } catch (error) {
           console.error('[Edge Function] ✗ Exception sending push:', error)

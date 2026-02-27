@@ -21,7 +21,7 @@ export async function sendPushNotification(
   message: PushMessage,
   vapidPublicKey: string,
   vapidPrivateKey: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; statusCode?: number }> {
   try {
     // Configurar los detalles de VAPID con la URL como recomienda Apple APNs
     // Apple APNs es estricto y a veces el 'mailto:' puede causar inconvenientes de parsing de origen
@@ -66,12 +66,20 @@ export async function sendPushNotification(
       sendResult.statusCode,
     );
 
-    return { success: true };
+    return { success: true, statusCode: sendResult.statusCode };
   } catch (error: any) {
     console.error(
       "[Web Push NPM] Error:",
       error.body || error.message || String(error),
     );
-    return { success: false, error: error.message || String(error) };
+
+    // Extract status code from error if available
+    const statusCode = error.statusCode || error.response?.statusCode;
+
+    return {
+      success: false,
+      error: error.message || String(error),
+      statusCode
+    };
   }
 }

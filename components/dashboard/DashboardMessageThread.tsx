@@ -55,8 +55,18 @@ export function DashboardMessageThread({
       }
 
       // Remove optimistic message when real message arrives
+      // Match by content AND sender AND timestamp proximity (within 5 seconds)
       setOptimisticMessages((prev) =>
-        prev.filter((msg) => msg.content !== newMessage.content)
+        prev.filter((msg) => {
+          const isSameSender = msg.sender_id === newMessage.sender_id
+          const isSameContent = msg.content === newMessage.content
+          const msgTime = new Date(msg.created_at).getTime()
+          const newMsgTime = new Date(newMessage.created_at).getTime()
+          const isCloseInTime = Math.abs(msgTime - newMsgTime) < 5000 // Within 5 seconds
+
+          // Keep the optimistic message if it doesn't match
+          return !(isSameSender && isSameContent && isCloseInTime)
+        })
       )
     },
   })
