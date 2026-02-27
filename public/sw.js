@@ -47,6 +47,26 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+self.addEventListener("push", (event) => {
+  console.log("🔥 PUSH EVENT RECEIVED");
+
+  let data = {};
+
+  try {
+    data = event.data?.json() ?? {};
+  } catch {
+    data = { title: "Fallback", body: "No payload" };
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "TEST PUSH", {
+      body: data.body || "Push recibido",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+    }),
+  );
+});
+
 /* ===============================
    FETCH (Network First)
 ================================ */
