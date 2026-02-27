@@ -41,7 +41,7 @@ export function useRealtimeMessages({
       return
     }
 
-    console.log("[useRealtimeMessages] Subscribing to conversation:", conversationId)
+    console.log("[useRealtimeMessages] Setting up channel for:", conversationId)
 
     const messageChannel = supabase
       .channel(`conversation:${conversationId}`)
@@ -55,21 +55,33 @@ export function useRealtimeMessages({
         },
         async (payload) => {
           console.log("[useRealtimeMessages] New message received:", payload)
-          // Fetch the full message with profile data
-          const { data: fullMessage } = await supabase
-            .from("messages")
-            .select(
-              `*,
-              profiles ( id, full_name, avatar_url )`
-            )
-            .eq("id", payload.new.id)
-            .single()
 
-          if (fullMessage) {
-            console.log("[useRealtimeMessages] Full message fetched:", fullMessage)
-            const newMessage = fullMessage as MessageWithSender
-            setMessages((prev) => [...prev, newMessage])
-            onNewMessageRef.current?.(newMessage)
+          try {
+            // Fetch the full message with profile data
+            const { data: fullMessage, error } = await supabase
+              .from("messages")
+              .select(
+                `*,
+                profiles ( id, full_name, avatar_url )`
+              )
+              .eq("id", payload.new.id)
+              .single()
+
+            if (error) {
+              console.error("[useRealtimeMessages] Error fetching message:", error)
+              return
+            }
+
+            if (fullMessage) {
+              console.log("[useRealtimeMessages] Full message fetched:", fullMessage)
+              const newMessage = fullMessage as MessageWithSender
+              setMessages((prev) => [...prev, newMessage])
+              onNewMessageRef.current?.(newMessage)
+            } else {
+              console.warn("[useRealtimeMessages] No message data returned")
+            }
+          } catch (err) {
+            console.error("[useRealtimeMessages] Exception fetching message:", err)
           }
         }
       )
@@ -100,6 +112,7 @@ export function useRealtimeMessages({
     setChannel(messageChannel)
 
     return () => {
+      console.log("[useRealtimeMessages] Cleaning up channel for:", conversationId)
       supabase.removeChannel(messageChannel)
     }
   }, [supabase, conversationId, isConnected])
