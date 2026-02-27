@@ -16,6 +16,7 @@ import {
   IconMenu2,
   IconLogout,
   IconLoader2,
+  IconBell,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/(auth)/actions";
@@ -61,6 +62,11 @@ const navItems: Array<{
   },
   { href: "/dashboard/reviews", label: "Reseñas", icon: IconStar },
   { href: "/dashboard/analytics", label: "Analíticas", icon: IconChartBar },
+  {
+    href: "/dashboard/settings/notifications",
+    label: "Notificaciones",
+    icon: IconBell
+  },
 ];
 
 const STATUS_MAP: Record<
