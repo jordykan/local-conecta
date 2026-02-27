@@ -16,6 +16,7 @@ export interface NotificationType {
   NEW_MESSAGE: 'new_message'
   NEW_REVIEW: 'new_review'
   REVIEW_RESPONSE: 'review_response'
+  NEW_PROMOTION: 'new_promotion'
 }
 
 export const NOTIFICATION_TYPE: NotificationType = {
@@ -24,7 +25,8 @@ export const NOTIFICATION_TYPE: NotificationType = {
   BOOKING_CANCELLED: 'booking_cancelled',
   NEW_MESSAGE: 'new_message',
   NEW_REVIEW: 'new_review',
-  REVIEW_RESPONSE: 'review_response'
+  REVIEW_RESPONSE: 'review_response',
+  NEW_PROMOTION: 'new_promotion'
 }
 
 /**
@@ -114,7 +116,8 @@ export async function isNotificationEnabled(
       BOOKING_CANCELLED: 'notify_booking_cancelled',
       NEW_MESSAGE: 'notify_new_message',
       NEW_REVIEW: 'notify_new_review',
-      REVIEW_RESPONSE: 'notify_review_response'
+      REVIEW_RESPONSE: 'notify_review_response',
+      NEW_PROMOTION: 'notify_new_promotion'
     }
 
     const prefKey = typeMap[notificationType]
@@ -139,7 +142,8 @@ export async function sendNotificationIfEnabled(
     'booking_cancelled': 'BOOKING_CANCELLED',
     'new_message': 'NEW_MESSAGE',
     'new_review': 'NEW_REVIEW',
-    'review_response': 'REVIEW_RESPONSE'
+    'review_response': 'REVIEW_RESPONSE',
+    'new_promotion': 'NEW_PROMOTION'
   }
 
   const typeKey = typeKeyMap[notificationType]

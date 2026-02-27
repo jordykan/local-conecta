@@ -633,6 +633,7 @@ export type Database = {
           notify_booking_confirmed: boolean
           notify_booking_cancelled: boolean
           notify_review_response: boolean
+          notify_new_promotion: boolean
           created_at: string
           updated_at: string
         }
@@ -645,6 +646,7 @@ export type Database = {
           notify_booking_confirmed?: boolean
           notify_booking_cancelled?: boolean
           notify_review_response?: boolean
+          notify_new_promotion?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -656,6 +658,7 @@ export type Database = {
           notify_booking_confirmed?: boolean
           notify_booking_cancelled?: boolean
           notify_review_response?: boolean
+          notify_new_promotion?: boolean
           updated_at?: string
         }
         Relationships: [

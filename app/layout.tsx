@@ -8,6 +8,7 @@ import NextTopLoader from "nextjs-toploader";
 import { PWAInitializer } from "@/components/PWAInitializer";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { AuthSubscriptionSync } from "@/components/AuthSubscriptionSync";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -75,6 +76,7 @@ export default function RootLayout({
             {children}
             <InstallPrompt />
             <PushNotificationManager />
+            <AuthSubscriptionSync />
             <Toaster closeButton={true} position="top-right" richColors={true} />
           </RealtimeProvider>
         </ThemeProvider>

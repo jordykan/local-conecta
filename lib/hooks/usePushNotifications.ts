@@ -79,6 +79,10 @@ export function usePushNotifications() {
       setState(prev => ({ ...prev, permission }))
 
       if (permission === 'granted') {
+        // Guardar localmente que el usuario concedió permisos
+        localStorage.setItem('push_permission_granted', 'true')
+
+        // Intentar suscribir (solo funciona si hay sesión)
         await subscribe()
         return true
       }
@@ -149,7 +153,19 @@ export function usePushNotifications() {
       console.log('[Push] Session exists:', !!session)
 
       if (!session) {
-        throw new Error('Usuario no autenticado')
+        // Usuario no está logueado todavía
+        // Guardar que tiene una subscription pendiente para cuando se loguee
+        console.log('[Push] No session found, subscription will be saved after login')
+        localStorage.setItem('push_subscription_pending', 'true')
+
+        // Actualizar estado con la subscription local
+        setState(prev => ({
+          ...prev,
+          subscription,
+          error: null
+        }))
+
+        return true // Permission granted, pero subscription pendiente
       }
 
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/subscribe-push`

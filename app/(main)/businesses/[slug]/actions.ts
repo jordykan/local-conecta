@@ -145,26 +145,51 @@ export async function createReview(data: unknown) {
     return { error: reason ?? "No puedes dejar una reseña en este negocio" }
   }
 
-  const { error } = await supabase.from("reviews").insert({
+  // Get user profile and business info for notification
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("slug, name, owner_id")
+    .eq("id", businessId)
+    .single()
+
+  const { data: newReview, error } = await supabase.from("reviews").insert({
     user_id: user.id,
     business_id: businessId,
     booking_id: bookingId,
     rating,
     comment,
   })
+  .select("id")
+  .single()
 
   if (error) {
     console.error("Error creating review:", error)
     return { error: "No se pudo crear la reseña. Intenta de nuevo." }
   }
 
-  // Revalidar perfil del negocio
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("slug")
-    .eq("id", businessId)
-    .single()
+  // Send push notification to business owner
+  if (newReview && business && userProfile) {
+    const stars = '⭐'.repeat(rating)
+    await sendNotificationIfEnabled(
+      {
+        userId: business.owner_id,
+        title: "Nueva reseña recibida",
+        body: `${userProfile.full_name} dejó una reseña ${stars} en ${business.name}`,
+        url: `/dashboard/reviews`,
+        tag: "review",
+        icon: "/icon.svg"
+      },
+      NOTIFICATION_TYPE.NEW_REVIEW
+    )
+  }
 
+  // Revalidar perfil del negocio
   if (business) {
     revalidatePath(`/businesses/${business.slug}`)
   }

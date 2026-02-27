@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { promotionSchema } from "@/lib/validations/promotion";
+import { sendNotificationIfEnabled, NOTIFICATION_TYPE } from "@/lib/services/push-notifications";
 
 async function verifyOwnership(businessId: string) {
   const supabase = await createClient();
@@ -59,7 +60,14 @@ export async function createPromotion(formData: FormData) {
     return { error: "Datos inválidos.", fieldErrors };
   }
 
-  const { error } = await supabase.from("promotions").insert({
+  // Get business name for notification
+  const { data: businessData } = await supabase
+    .from("businesses")
+    .select("name")
+    .eq("id", businessId)
+    .single();
+
+  const { data: newPromotion, error } = await supabase.from("promotions").insert({
     business_id: businessId,
     title: parsed.data.title,
     description: parsed.data.description || null,
@@ -69,9 +77,41 @@ export async function createPromotion(formData: FormData) {
     starts_at: parsed.data.startsAt || null,
     ends_at: parsed.data.endsAt || null,
     is_active: parsed.data.isActive,
-  });
+  })
+  .select("id")
+  .single();
 
   if (error) return { error: "No se pudo crear. Intenta de nuevo." };
+
+  // Send notifications to all users who have this business in favorites
+  if (newPromotion && businessData && parsed.data.isActive) {
+    // Get all users who favorited this business
+    const { data: favorites } = await supabase
+      .from("favorites")
+      .select("user_id")
+      .eq("business_id", businessId);
+
+    if (favorites && favorites.length > 0) {
+      // Send notification to each user (in parallel)
+      await Promise.all(
+        favorites.map(({ user_id }) =>
+          sendNotificationIfEnabled(
+            {
+              userId: user_id,
+              title: `Nueva promoción en ${businessData.name}`,
+              body: parsed.data.title,
+              url: `/businesses/${business.slug}`,
+              tag: "promotion",
+              icon: "/icon.svg"
+            },
+            NOTIFICATION_TYPE.NEW_PROMOTION
+          )
+        )
+      );
+
+      console.log(`[Promotions] Sent notifications to ${favorites.length} users`);
+    }
+  }
 
   revalidatePath("/dashboard/promotions");
   revalidatePath(`/businesses/${business.slug}`);

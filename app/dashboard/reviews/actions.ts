@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { ownerReplySchema } from "@/lib/validations/review"
+import { sendNotificationIfEnabled, NOTIFICATION_TYPE } from "@/lib/services/push-notifications"
 
 async function verifyBusinessOwnership(businessId: string) {
   const supabase = await createClient()
@@ -39,10 +40,10 @@ export async function replyToReview(data: unknown) {
 
   const supabase = await createClient()
 
-  // Obtener review para verificar ownership del negocio
+  // Obtener review para verificar ownership del negocio y obtener datos del usuario
   const { data: review } = await supabase
     .from("reviews")
-    .select("business_id")
+    .select("business_id, user_id")
     .eq("id", reviewId)
     .single()
 
@@ -50,13 +51,20 @@ export async function replyToReview(data: unknown) {
     return { error: "Reseña no encontrada" }
   }
 
-  const { error: authError, business } = await verifyBusinessOwnership(
+  const { error: authError, business, supabase: authSupabase } = await verifyBusinessOwnership(
     review.business_id,
   )
 
   if (authError || !business) {
     return { error: authError ?? "Error de autorización" }
   }
+
+  // Get business name for notification
+  const { data: businessData } = await authSupabase
+    .from("businesses")
+    .select("name")
+    .eq("id", review.business_id)
+    .single()
 
   const { error } = await supabase
     .from("reviews")
@@ -68,6 +76,21 @@ export async function replyToReview(data: unknown) {
 
   if (error) {
     return { error: "No se pudo guardar la respuesta" }
+  }
+
+  // Send push notification to the user who wrote the review
+  if (businessData) {
+    await sendNotificationIfEnabled(
+      {
+        userId: review.user_id,
+        title: "Respuesta a tu reseña",
+        body: `${businessData.name} respondió a tu reseña`,
+        url: `/businesses/${business.slug}`,
+        tag: "review",
+        icon: "/icon.svg"
+      },
+      NOTIFICATION_TYPE.REVIEW_RESPONSE
+    )
   }
 
   revalidatePath("/dashboard/reviews")

@@ -89,7 +89,8 @@ serve(async (req) => {
     // Si el usuario tiene preferencias y todas están desactivadas, no enviar
     if (prefs && !prefs.notify_new_booking && !prefs.notify_booking_confirmed &&
         !prefs.notify_booking_cancelled && !prefs.notify_new_message &&
-        !prefs.notify_new_review) {
+        !prefs.notify_new_review && !prefs.notify_review_response &&
+        !prefs.notify_new_promotion) {
       console.log('[Edge Function] All notifications disabled for user')
       return new Response(
         JSON.stringify({ message: 'User has disabled all notifications' }),
