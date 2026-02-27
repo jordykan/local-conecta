@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect } from "react"
-import { IconSend } from "@tabler/icons-react"
+import { useState, useTransition, useRef, useEffect, useMemo } from "react"
+import { IconSend, IconCheck, IconClock, IconAlertCircle } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { sendMessage } from "@/app/(main)/account/actions"
@@ -12,6 +12,13 @@ import { TypingIndicator } from "@/components/shared/TypingIndicator"
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages"
 import { useTypingIndicator } from "@/lib/hooks/useTypingIndicator"
 import type { MessageWithSender } from "@/lib/queries/messages"
+
+type MessageStatus = "sending" | "sent" | "error"
+
+type OptimisticMessage = MessageWithSender & {
+  tempId?: string
+  status?: MessageStatus
+}
 
 interface MessageThreadProps {
   initialMessages: MessageWithSender[]
@@ -31,9 +38,10 @@ export function MessageThread({
   const [content, setContent] = useState("")
   const [pending, startTransition] = useTransition()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([])
 
   // Use Realtime hooks
-  const { messages, markAllAsRead } = useRealtimeMessages({
+  const { messages: realtimeMessages, markAllAsRead } = useRealtimeMessages({
     conversationId,
     initialMessages,
     onNewMessage: (newMessage) => {
@@ -41,8 +49,20 @@ export function MessageThread({
       if (newMessage.sender_id !== currentUserId) {
         markAllAsRead(currentUserId)
       }
+
+      // Remove optimistic message when real message arrives
+      setOptimisticMessages((prev) =>
+        prev.filter((msg) => msg.content !== newMessage.content)
+      )
     },
   })
+
+  // Combine realtime messages with optimistic messages
+  const messages = useMemo(() => {
+    return [...realtimeMessages, ...optimisticMessages].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+  }, [realtimeMessages, optimisticMessages])
 
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator({
     conversationId,
@@ -62,15 +82,53 @@ export function MessageThread({
 
     stopTyping() // Stop typing indicator
 
+    const messageContent = content.trim()
+    const tempId = `temp-${Date.now()}`
+
+    // Create optimistic message
+    const optimisticMessage: OptimisticMessage = {
+      id: tempId,
+      tempId,
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      business_id: businessId,
+      content: messageContent,
+      is_read: true,
+      created_at: new Date().toISOString(),
+      read_at: null,
+      profiles: {
+        id: currentUserId,
+        full_name: currentUserName,
+        avatar_url: null,
+      },
+      status: "sending",
+    }
+
+    // Add optimistic message immediately
+    setOptimisticMessages((prev) => [...prev, optimisticMessage])
+    setContent("")
+
+    // Send message to server
     startTransition(async () => {
-      const result = await sendMessage(conversationId, businessId, content.trim())
+      const result = await sendMessage(conversationId, businessId, messageContent)
 
       if (result?.error) {
+        // Update status to error
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg.tempId === tempId ? { ...msg, status: "error" as MessageStatus } : msg
+          )
+        )
         toast.error("Error al enviar mensaje", {
-          description: result.error
+          description: result.error,
         })
       } else {
-        setContent("")
+        // Update status to sent (will be removed when realtime message arrives)
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg.tempId === tempId ? { ...msg, status: "sent" as MessageStatus } : msg
+          )
+        )
       }
     })
   }
@@ -80,6 +138,40 @@ export function MessageThread({
       e.preventDefault()
       handleSubmit(e)
     }
+  }
+
+  function retryMessage(messageId: string) {
+    const message = optimisticMessages.find((msg) => msg.id === messageId)
+    if (!message) return
+
+    // Update status to sending
+    setOptimisticMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, status: "sending" as MessageStatus } : msg
+      )
+    )
+
+    // Retry sending
+    startTransition(async () => {
+      const result = await sendMessage(conversationId, businessId, message.content)
+
+      if (result?.error) {
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId ? { ...msg, status: "error" as MessageStatus } : msg
+          )
+        )
+        toast.error("Error al reenviar mensaje", {
+          description: result.error,
+        })
+      } else {
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId ? { ...msg, status: "sent" as MessageStatus } : msg
+          )
+        )
+      }
+    })
   }
 
   function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -119,6 +211,7 @@ export function MessageThread({
                 .join("")
                 .slice(0, 2)
                 .toUpperCase() ?? "?"
+            const status = (msg as OptimisticMessage).status
 
             return (
               <div
@@ -151,19 +244,41 @@ export function MessageThread({
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {msg.content}
                   </p>
-                  <p
+                  <div
                     className={cn(
-                      "mt-1 text-[10px]",
+                      "mt-1 flex items-center gap-1.5 text-[10px]",
                       isOwn
                         ? "text-primary-foreground/60"
                         : "text-muted-foreground"
                     )}
                   >
-                    {new Date(msg.created_at).toLocaleTimeString("es-MX", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    <span>
+                      {new Date(msg.created_at).toLocaleTimeString("es-MX", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {isOwn && status && (
+                      <>
+                        {status === "sending" && (
+                          <IconClock className="size-3 animate-pulse" />
+                        )}
+                        {status === "sent" && <IconCheck className="size-3" />}
+                        {status === "error" && (
+                          <>
+                            <IconAlertCircle className="size-3 text-destructive" />
+                            <button
+                              onClick={() => retryMessage(msg.id)}
+                              className="ml-1 underline hover:text-primary-foreground transition-colors"
+                              disabled={pending}
+                            >
+                              Reintentar
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )
