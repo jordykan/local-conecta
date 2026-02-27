@@ -242,8 +242,25 @@ export async function sendPushNotification(
   vapidPrivateKey: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // ✅ iOS-compatible payload: FLAT structure, NO wrappers
+    // Only include defined fields to ensure clean JSON
+    const cleanPayload: Record<string, string> = {
+      title: message.title,
+      body: message.body,
+      url: message.url
+    }
+
+    // Add optional fields only if defined
+    if (message.tag) cleanPayload.tag = message.tag
+    if (message.icon) cleanPayload.icon = message.icon
+
+    const payload = JSON.stringify(cleanPayload)
+
+    // 🔍 DEBUG: Log final payload structure (temporary)
+    console.log('[Web Push] FINAL PUSH PAYLOAD:', payload)
+    console.log('[Web Push] Endpoint type:', subscription.endpoint.includes('apple') ? 'iOS' : 'Other')
+
     // Encrypt the message payload
-    const payload = JSON.stringify(message)
     const { ciphertext, salt, publicKey } = await encryptPayload(
       payload,
       subscription.keys.p256dh,

@@ -47,26 +47,6 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-self.addEventListener("push", (event) => {
-  console.log("🔥 PUSH EVENT RECEIVED");
-
-  let data = {};
-
-  try {
-    data = event.data?.json() ?? {};
-  } catch {
-    data = { title: "Fallback", body: "No payload" };
-  }
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || "TEST PUSH", {
-      body: data.body || "Push recibido",
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-    }),
-  );
-});
-
 /* ===============================
    FETCH (Network First)
 ================================ */
@@ -105,42 +85,58 @@ self.addEventListener("fetch", (event) => {
    PUSH (🔥 iOS SAFE)
 ================================ */
 self.addEventListener("push", (event) => {
-  console.log("[SW] PUSH RECEIVED");
+  console.log("🔥 PUSH EVENT RECEIVED - Service Worker awakened");
+  console.log("[SW] Event data exists:", !!event.data);
 
   let data = {};
 
   if (event.data) {
     try {
       data = event.data.json();
+      console.log("[SW] Payload parsed successfully:", data);
     } catch (err) {
+      console.warn("[SW] Failed to parse as JSON, trying text:", err);
       try {
         data = JSON.parse(event.data.text());
+        console.log("[SW] Parsed from text:", data);
       } catch {
+        console.error("[SW] All parsing failed, using fallback");
         data = {
           title: "Local Conecta",
-          body: event.data.text(),
+          body: event.data.text() || "Nueva notificación",
         };
       }
     }
+  } else {
+    console.warn("[SW] No event.data, using default");
+    data = {
+      title: "Local Conecta",
+      body: "Notificación recibida",
+    };
   }
 
   const title = data.title || "Local Conecta";
 
+  // ✅ iOS-compatible notification options
   const options = {
     body: data.body || "Nueva notificación",
-    icon: "/icon.svg",
+    icon: data.icon || "/icon.svg",
     badge: "/icon.svg",
     data: {
       url: data.url || "/",
     },
     tag: data.tag || "default",
+    requireInteraction: false, // iOS compatibility
+    silent: false, // Ensure notification is visible
   };
+
+  console.log("[SW] Showing notification:", title, options);
 
   event.waitUntil(
     self.registration
       .showNotification(title, options)
-      .then(() => console.log("[SW] Notification shown"))
-      .catch((err) => console.error("[SW] Notification error:", err)),
+      .then(() => console.log("✅ [SW] Notification shown successfully"))
+      .catch((err) => console.error("❌ [SW] Notification error:", err)),
   );
 });
 
