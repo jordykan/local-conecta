@@ -9,6 +9,7 @@ interface PushNotificationState {
   isSupported: boolean
   isLoading: boolean
   error: string | null
+  isSubscribedInDB: boolean
 }
 
 export function usePushNotifications() {
@@ -17,7 +18,8 @@ export function usePushNotifications() {
     subscription: null,
     isSupported: false,
     isLoading: false,
-    error: null
+    error: null,
+    isSubscribedInDB: false
   })
 
   const supabase = createClient()
@@ -69,19 +71,54 @@ export function usePushNotifications() {
       const subscription = await registration.pushManager.getSubscription()
 
       if (subscription) {
+        // Check if subscription also exists in database
+        const { data: { session } } = await supabase.auth.getSession()
+        let isInDB = false
+
+        if (session) {
+          const endpoint = subscription.endpoint
+          const { data: dbSubscription } = await supabase
+            .from('push_subscriptions')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .filter('subscription->>endpoint', 'eq', endpoint)
+            .single()
+
+          isInDB = !!dbSubscription
+          console.log('[Push] Subscription in DB:', isInDB)
+
+          // If browser has subscription but DB doesn't, clean it up
+          if (!isInDB) {
+            console.log('[Push] Subscription exists in browser but not in DB, unsubscribing...')
+            await subscription.unsubscribe()
+            setState(prev => ({
+              ...prev,
+              subscription: null,
+              permission: Notification.permission,
+              isSubscribedInDB: false
+            }))
+            return
+          }
+        }
+
         setState(prev => ({
           ...prev,
           subscription,
-          permission: Notification.permission
+          permission: Notification.permission,
+          isSubscribedInDB: isInDB
         }))
       } else {
         // No subscription in browser - clean up any stale entries in database
         await cleanupStaleSubscriptions()
+        setState(prev => ({
+          ...prev,
+          isSubscribedInDB: false
+        }))
       }
     } catch (error) {
       console.error('[Push] Error loading existing subscription:', error)
     }
-  }, [cleanupStaleSubscriptions])
+  }, [cleanupStaleSubscriptions, supabase])
 
   // Cargar subscription existente cuando el soporte esté confirmado
   useEffect(() => {
@@ -190,7 +227,8 @@ export function usePushNotifications() {
         setState(prev => ({
           ...prev,
           subscription,
-          error: null
+          error: null,
+          isSubscribedInDB: false // Not in DB yet
         }))
 
         return true // Permission granted, pero subscription pendiente
@@ -226,7 +264,8 @@ export function usePushNotifications() {
       setState(prev => ({
         ...prev,
         subscription,
-        error: null
+        error: null,
+        isSubscribedInDB: true
       }))
 
       console.log('[Push] Subscribed successfully')
@@ -263,7 +302,8 @@ export function usePushNotifications() {
         setState(prev => ({
           ...prev,
           subscription: null,
-          error: null
+          error: null,
+          isSubscribedInDB: false
         }))
 
         console.log('[Push] Unsubscribed successfully')
@@ -288,7 +328,8 @@ export function usePushNotifications() {
     requestPermission,
     subscribe,
     unsubscribe,
-    isSubscribed: !!state.subscription
+    // Only consider subscribed if BOTH browser and database have it
+    isSubscribed: !!state.subscription && state.isSubscribedInDB
   }
 }
 
