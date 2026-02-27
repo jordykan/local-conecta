@@ -133,12 +133,21 @@ export function useRealtimeMessages({
 
   const markAllAsRead = useCallback(
     async (userId: string) => {
-      await supabase
+      console.log("[markAllAsRead] Starting for conversation:", conversationId, "user:", userId)
+
+      const { data, error, count } = await supabase
         .from("messages")
         .update({ read_at: new Date().toISOString() })
         .eq("conversation_id", conversationId)
         .neq("sender_id", userId)
         .is("read_at", null)
+        .select()
+
+      console.log("[markAllAsRead] Result:", { data, error, count, affectedRows: data?.length })
+
+      if (error) {
+        console.error("[markAllAsRead] Error:", error)
+      }
     },
     [supabase, conversationId]
   )
