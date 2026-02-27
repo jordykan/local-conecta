@@ -70,11 +70,12 @@ export function MessageThread({
     currentUserName,
   })
 
+  // Auto-scroll when messages or typing users change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages.length])
+  }, [messages.length, typingUsers.length])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
