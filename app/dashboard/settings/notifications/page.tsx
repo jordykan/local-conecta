@@ -22,7 +22,7 @@ interface NotificationPreferences {
 
 export default function NotificationsSettingsPage() {
   const supabase = createClient();
-  const { permission, isSubscribed, requestPermission } = usePushNotifications();
+  const { permission, isSubscribed, requestPermission, subscribe } = usePushNotifications();
   const [userId, setUserId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,9 +117,24 @@ export default function NotificationsSettingsPage() {
   };
 
   const handleEnableNotifications = async () => {
-    const success = await requestPermission();
-    if (success) {
-      toast.success("Notificaciones activadas");
+    let success = false;
+
+    if (permission === "granted") {
+      // Ya tiene permisos, solo necesita suscribirse
+      success = await subscribe();
+      if (success) {
+        toast.success("Suscripción activada correctamente");
+      } else {
+        toast.error("Error al suscribirse a notificaciones");
+      }
+    } else {
+      // Necesita pedir permisos primero
+      success = await requestPermission();
+      if (success) {
+        toast.success("Notificaciones activadas");
+      } else {
+        toast.error("No se pudieron activar las notificaciones");
+      }
     }
   };
 
@@ -173,13 +188,13 @@ export default function NotificationsSettingsPage() {
             <span className="text-sm">{isSubscribed ? "✅ Sí" : "❌ No"}</span>
           </div>
 
-          {permission !== "granted" && (
+          {!isSubscribed && permission !== "denied" && (
             <div className="pt-4">
               <button
                 onClick={handleEnableNotifications}
                 className="w-full rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
               >
-                Activar notificaciones
+                {permission === "granted" ? "Suscribirse a notificaciones" : "Activar notificaciones"}
               </button>
             </div>
           )}
