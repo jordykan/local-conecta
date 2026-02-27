@@ -69,6 +69,56 @@ export default function TestNotificationsPage() {
     window.location.reload()
   }
 
+  const handleSendTestNotification = async () => {
+    if (!userId) {
+      toast.error('No hay usuario autenticado')
+      return
+    }
+
+    try {
+      console.log('[Test] Sending test notification...')
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        toast.error('No hay sesión activa')
+        return
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-notification`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            userId: userId,
+            title: '🧪 Notificación de Prueba',
+            body: 'Si ves esto, ¡las notificaciones funcionan! 🎉',
+            url: '/test-notifications',
+            tag: 'test',
+            icon: '/icon.svg'
+          })
+        }
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('[Test] Error:', error)
+        toast.error(`Error: ${error.error || 'Error desconocido'}`)
+        return
+      }
+
+      const result = await response.json()
+      console.log('[Test] Result:', result)
+      toast.success('Notificación enviada! Revisa tu iPhone')
+    } catch (error) {
+      console.error('[Test] Exception:', error)
+      toast.error('Error al enviar notificación')
+    }
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-2xl">
       <Card>
@@ -124,6 +174,16 @@ export default function TestNotificationsPage() {
               <IconRefresh className="h-4 w-4" />
             </Button>
           </div>
+
+          {subscription && userId && (
+            <Button
+              onClick={handleSendTestNotification}
+              variant="secondary"
+              className="w-full"
+            >
+              🧪 Enviar Notificación de Prueba
+            </Button>
+          )}
 
           {logs.length > 0 && (
             <div className="rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-950/30">
