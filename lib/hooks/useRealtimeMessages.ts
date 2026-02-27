@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useRealtimeContext } from "@/lib/contexts/RealtimeContext"
 import type { MessageWithSender } from "@/lib/queries/messages"
 import type { RealtimeChannel } from "@supabase/supabase-js"
@@ -19,6 +19,12 @@ export function useRealtimeMessages({
   const { supabase, isConnected } = useRealtimeContext()
   const [messages, setMessages] = useState<MessageWithSender[]>(initialMessages)
   const [channel, setChannel] = useState<RealtimeChannel | null>(null)
+  const onNewMessageRef = useRef(onNewMessage)
+
+  // Keep ref updated
+  useEffect(() => {
+    onNewMessageRef.current = onNewMessage
+  }, [onNewMessage])
 
   // Update messages when initialMessages change (e.g., page refresh)
   useEffect(() => {
@@ -63,7 +69,7 @@ export function useRealtimeMessages({
             console.log("[useRealtimeMessages] Full message fetched:", fullMessage)
             const newMessage = fullMessage as MessageWithSender
             setMessages((prev) => [...prev, newMessage])
-            onNewMessage?.(newMessage)
+            onNewMessageRef.current?.(newMessage)
           }
         }
       )
@@ -96,7 +102,7 @@ export function useRealtimeMessages({
     return () => {
       supabase.removeChannel(messageChannel)
     }
-  }, [supabase, conversationId, isConnected, onNewMessage])
+  }, [supabase, conversationId, isConnected])
 
   const markAsRead = useCallback(
     async (messageId: string) => {
