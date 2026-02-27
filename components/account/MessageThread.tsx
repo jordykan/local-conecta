@@ -184,6 +184,11 @@ export function MessageThread({
     }
   }
 
+  // Mark messages as read when entering chat
+  useEffect(() => {
+    markAllAsRead(currentUserId)
+  }, [markAllAsRead, currentUserId])
+
   // Stop typing when component unmounts
   useEffect(() => {
     return () => {
