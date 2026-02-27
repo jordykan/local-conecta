@@ -36,7 +36,8 @@ CREATE POLICY "messages_mark_as_read" ON messages
 DROP FUNCTION IF EXISTS get_unread_count(uuid);
 DROP FUNCTION IF EXISTS get_business_unread_count(uuid);
 
--- Function to count unread messages for a user
+-- Function to count PERSONAL unread messages for a user
+-- (excludes business messages to avoid double counting)
 CREATE OR REPLACE FUNCTION get_unread_count(user_uuid uuid)
 RETURNS bigint AS $$
   SELECT COUNT(*)
@@ -51,10 +52,13 @@ RETURNS bigint AS $$
     -- Not sent by the user (they received it)
     AND sender_id != user_uuid
     -- Not read yet
-    AND read_at IS NULL;
+    AND read_at IS NULL
+    -- IMPORTANT: Exclude business messages (to avoid double counting)
+    AND business_id IS NULL;
 $$ LANGUAGE sql SECURITY DEFINER;
 
--- Function to count unread messages for a business
+-- Function to count BUSINESS unread messages
+-- (all messages to the business, regardless of personal participation)
 CREATE OR REPLACE FUNCTION get_business_unread_count(business_uuid uuid)
 RETURNS bigint AS $$
   SELECT COUNT(*)

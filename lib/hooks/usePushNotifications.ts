@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface PushNotificationState {
@@ -40,14 +40,30 @@ export function usePushNotifications() {
     checkSupport()
   }, [])
 
-  // Cargar subscription existente cuando el soporte esté confirmado
-  useEffect(() => {
-    if (state.isSupported) {
-      loadExistingSubscription()
-    }
-  }, [state.isSupported])
+  const cleanupStaleSubscriptions = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
 
-  const loadExistingSubscription = async () => {
+      console.log('[Push] No browser subscription found, cleaning up database...')
+
+      // Delete all subscriptions for this user (since browser has none)
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', session.user.id)
+
+      if (error) {
+        console.error('[Push] Error cleaning up subscriptions:', error)
+      } else {
+        console.log('[Push] Stale subscriptions cleaned up')
+      }
+    } catch (error) {
+      console.error('[Push] Error in cleanup:', error)
+    }
+  }, [supabase])
+
+  const loadExistingSubscription = useCallback(async () => {
     try {
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.getSubscription()
@@ -58,11 +74,21 @@ export function usePushNotifications() {
           subscription,
           permission: Notification.permission
         }))
+      } else {
+        // No subscription in browser - clean up any stale entries in database
+        await cleanupStaleSubscriptions()
       }
     } catch (error) {
       console.error('[Push] Error loading existing subscription:', error)
     }
-  }
+  }, [cleanupStaleSubscriptions])
+
+  // Cargar subscription existente cuando el soporte esté confirmado
+  useEffect(() => {
+    if (state.isSupported) {
+      loadExistingSubscription()
+    }
+  }, [state.isSupported, loadExistingSubscription])
 
   const requestPermission = async (): Promise<boolean> => {
     if (!state.isSupported) {
