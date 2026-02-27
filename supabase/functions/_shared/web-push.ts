@@ -278,18 +278,44 @@ export async function sendPushNotification(
       audience
     )
 
-    // Build the request body
-    const body = ciphertext
+    // ✅ Build RFC 8188 (aes128gcm) body format for iOS compatibility
+    // Format: salt (16 bytes) + record_size (4 bytes) + id_length (1 byte) + public_key + ciphertext
+    const recordSize = 4096 // Standard record size
+    const recordSizeBytes = new Uint8Array(4)
+    new DataView(recordSizeBytes.buffer).setUint32(0, recordSize, false) // big-endian
 
-    // Build headers
+    const idLength = new Uint8Array([publicKey.length]) // 65 for uncompressed P-256
+
+    // Concatenate all parts into single body
+    const body = new Uint8Array(
+      salt.length +
+      recordSizeBytes.length +
+      idLength.length +
+      publicKey.length +
+      ciphertext.length
+    )
+
+    let offset = 0
+    body.set(salt, offset)
+    offset += salt.length
+    body.set(recordSizeBytes, offset)
+    offset += recordSizeBytes.length
+    body.set(idLength, offset)
+    offset += idLength.length
+    body.set(publicKey, offset)
+    offset += publicKey.length
+    body.set(ciphertext, offset)
+
+    console.log('[Web Push] Body format: RFC 8188 (aes128gcm)')
+    console.log('[Web Push] Body size:', body.length, 'bytes')
+
+    // Build headers (RFC 8188 format - no Crypto-Key or Encryption headers)
     const headers = new Headers({
       'Content-Type': 'application/octet-stream',
       'Content-Encoding': 'aes128gcm',
       'Content-Length': body.length.toString(),
       'TTL': '86400', // 24 hours
-      'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey}`,
-      'Crypto-Key': `dh=${uint8ArrayToBase64Url(publicKey)}`,
-      'Encryption': `salt=${uint8ArrayToBase64Url(salt)}`
+      'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey}`
     })
 
     // Send the request
