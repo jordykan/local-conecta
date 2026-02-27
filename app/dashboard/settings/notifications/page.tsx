@@ -29,50 +29,69 @@ export default function NotificationsSettingsPage() {
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPreferences();
-  }, []);
+    let isMounted = true;
 
-  const loadPreferences = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("No estás autenticado");
-        return;
-      }
+    const loadPreferences = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-      setUserId(user.id);
+        if (!isMounted) return;
 
-      const { data, error } = await supabase
-        .from("notification_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error loading preferences:", error);
-        // Crear preferencias por defecto si no existen
-        const { data: newPrefs, error: insertError } = await supabase
-          .from("notification_preferences")
-          .insert({ user_id: user.id })
-          .select()
-          .single();
-
-        if (insertError) {
-          toast.error("Error al cargar preferencias");
+        if (!user) {
+          toast.error("No estás autenticado");
+          setLoading(false);
           return;
         }
 
-        setPreferences(newPrefs as NotificationPreferences);
-      } else {
-        setPreferences(data as NotificationPreferences);
+        setUserId(user.id);
+
+        const { data, error } = await supabase
+          .from("notification_preferences")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (!isMounted) return;
+
+        if (error) {
+          console.error("Error loading preferences:", error);
+          // Crear preferencias por defecto si no existen
+          const { data: newPrefs, error: insertError } = await supabase
+            .from("notification_preferences")
+            .insert({ user_id: user.id })
+            .select()
+            .single();
+
+          if (!isMounted) return;
+
+          if (insertError) {
+            toast.error("Error al cargar preferencias");
+            setLoading(false);
+            return;
+          }
+
+          setPreferences(newPrefs as NotificationPreferences);
+        } else {
+          setPreferences(data as NotificationPreferences);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        if (isMounted) {
+          toast.error("Error al cargar preferencias");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al cargar preferencias");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    loadPreferences();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
 
   const updatePreference = async (key: keyof NotificationPreferences, value: boolean) => {
     if (!userId || !preferences) return;

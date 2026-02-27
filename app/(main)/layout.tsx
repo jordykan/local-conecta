@@ -1,8 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { createClient } from "@/lib/supabase/server"
-import Link from "next/link"
-import { IconBell } from "@tabler/icons-react"
 
 export default async function MainLayout({
   children,
@@ -34,15 +32,6 @@ export default async function MainLayout({
       <Navbar user={navUser} />
       <main className="flex-1">{children}</main>
       <Footer />
-
-      {/* Botón flotante temporal para pruebas de notificaciones */}
-      <Link
-        href="/test-notifications"
-        className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 rounded-full bg-orange-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-orange-700 transition-colors"
-      >
-        <IconBell className="h-5 w-5" />
-        <span>Test Push</span>
-      </Link>
     </div>
   )
 }

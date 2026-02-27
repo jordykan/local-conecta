@@ -38,12 +38,14 @@ export function usePushNotifications() {
     }
 
     checkSupport()
+  }, [])
 
-    // Cargar subscription existente si la hay
+  // Cargar subscription existente cuando el soporte esté confirmado
+  useEffect(() => {
     if (state.isSupported) {
       loadExistingSubscription()
     }
-  }, [])
+  }, [state.isSupported])
 
   const loadExistingSubscription = async () => {
     try {
