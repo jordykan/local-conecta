@@ -10,8 +10,32 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
   experimental: {
     optimizePackageImports: ["@tabler/icons-react", "date-fns"],
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+    ];
   },
 };
 
