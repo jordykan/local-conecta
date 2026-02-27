@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { profileUpdateSchema } from "@/lib/validations/profile"
+import { sendNotificationIfEnabled, NOTIFICATION_TYPE } from "@/lib/services/push-notifications"
 
 export async function updateProfile(data: unknown) {
   const supabase = await createClient()
@@ -87,6 +88,20 @@ export async function sendMessage(
 
   if (!content.trim()) return { error: "El mensaje no puede estar vacio." }
 
+  // Get business info and owner for notification
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("name, owner_id")
+    .eq("id", businessId)
+    .single()
+
+  // Get user profile for notification
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: user.id,
@@ -95,6 +110,25 @@ export async function sendMessage(
   })
 
   if (error) return { error: "No se pudo enviar el mensaje." }
+
+  // Send push notification to business owner
+  if (business && profile) {
+    const messagePreview = content.trim().length > 50
+      ? content.trim().substring(0, 50) + '...'
+      : content.trim()
+
+    await sendNotificationIfEnabled(
+      {
+        userId: business.owner_id,
+        title: `Mensaje de ${profile.full_name}`,
+        body: messagePreview,
+        url: `/dashboard/messages/${conversationId}`,
+        tag: "message",
+        icon: "/icon.svg"
+      },
+      NOTIFICATION_TYPE.NEW_MESSAGE
+    )
+  }
 
   revalidatePath(`/account/messages/${conversationId}`)
   return { success: true }
