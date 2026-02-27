@@ -18,12 +18,25 @@ export default async function MainLayout({
       .eq("id", user.id)
       .single<{ full_name: string; avatar_url: string | null; role: string }>()
 
+    // Fetch businessId if user is a business owner
+    let businessId: string | undefined
+    if (profile?.role === "business_owner") {
+      const { data: business } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("owner_id", user.id)
+        .single()
+
+      businessId = business?.id
+    }
+
     navUser = {
       id: user.id,
       email: user.email!,
       fullName: profile?.full_name ?? "",
       avatarUrl: profile?.avatar_url,
       role: profile?.role,
+      businessId,
     }
   }
 

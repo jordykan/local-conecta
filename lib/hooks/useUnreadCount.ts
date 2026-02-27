@@ -19,23 +19,48 @@ export function useUnreadCount({ userId, businessId }: UseUnreadCountOptions) {
       setLoading(true)
 
       if (businessId) {
-        // Business owner: count messages TO the business
-        const { data, error } = await supabase.rpc(
+        // Business owner: count BOTH personal messages + business messages
+        console.log("[useUnreadCount] Fetching combined count for user:", userId, "business:", businessId)
+
+        // Fetch personal messages count
+        const { data: userCount, error: userError } = await supabase.rpc("get_unread_count", {
+          user_uuid: userId,
+        })
+
+        // Fetch business messages count
+        const { data: businessCount, error: businessError } = await supabase.rpc(
           "get_business_unread_count",
           { business_uuid: businessId }
         )
 
-        if (!error && typeof data === "number") {
-          setCount(data)
-        }
+        console.log("[useUnreadCount] Combined result:", {
+          userCount,
+          userError,
+          businessCount,
+          businessError
+        })
+
+        // Sum both counts
+        const totalCount =
+          (typeof userCount === "number" ? userCount : 0) +
+          (typeof businessCount === "number" ? businessCount : 0)
+
+        setCount(totalCount)
+
+        if (userError) console.error("[useUnreadCount] User error:", userError)
+        if (businessError) console.error("[useUnreadCount] Business error:", businessError)
       } else {
         // Regular user: count messages in their conversations
+        console.log("[useUnreadCount] Fetching for user:", userId)
         const { data, error } = await supabase.rpc("get_unread_count", {
           user_uuid: userId,
         })
 
+        console.log("[useUnreadCount] User result:", { data, error })
         if (!error && typeof data === "number") {
           setCount(data)
+        } else if (error) {
+          console.error("[useUnreadCount] Error:", error)
         }
       }
     } catch (error) {

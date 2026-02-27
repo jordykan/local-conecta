@@ -32,6 +32,7 @@ interface NavbarProps {
     fullName: string
     avatarUrl?: string | null
     role?: string
+    businessId?: string
   } | null
 }
 
@@ -83,10 +84,10 @@ export function Navbar({ user }: NavbarProps) {
   const isHome = pathname === "/"
   const transparent = isHome
 
-  // Get unread message count
+  // Get unread message count (combined for business owners: personal + business messages)
   const { count: unreadCount } = useUnreadCount({
     userId: user?.id ?? "",
-    businessId: user?.role === "business_owner" ? undefined : undefined, // TODO: Get business ID if owner
+    businessId: user?.businessId,
   })
 
   return (
@@ -127,13 +128,20 @@ export function Navbar({ user }: NavbarProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="ml-3 flex items-center gap-2.5 rounded-full border border-border/60 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-accent"
+                  className="relative ml-3 flex items-center gap-2.5 rounded-full border border-border/60 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-accent"
                 >
                   <UserAvatar user={user} />
                   <span className="max-w-[120px] truncate text-sm font-medium text-foreground">
                     {user.fullName?.split(" ")[0] || "Cuenta"}
                   </span>
                   <IconChevronDown className="size-3.5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <UnreadBadge
+                      count={unreadCount}
+                      variant="dot"
+                      className="absolute -right-1 -top-1"
+                    />
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -210,10 +218,17 @@ export function Navbar({ user }: NavbarProps) {
             <Button
               variant="ghost"
               size="icon"
-              className={`md:hidden ${transparent ? "text-white hover:bg-white/10" : ""}`}
+              className={`relative md:hidden ${transparent ? "text-white hover:bg-white/10" : ""}`}
               aria-label="Abrir menu"
             >
               <IconMenu2 className="size-5" />
+              {user && unreadCount > 0 && (
+                <UnreadBadge
+                  count={unreadCount}
+                  variant="dot"
+                  className="absolute -right-0.5 -top-0.5"
+                />
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
