@@ -178,18 +178,94 @@ export async function encryptPayload(
   // Generate random salt
   const salt = crypto.getRandomValues(new Uint8Array(16))
 
-  // Create info strings for key derivation
-  const keyInfo = encoder.encode('WebPush: info\0')
-  const nonceInfo = encoder.encode('Content-Encoding: nonce\0')
+  // ✅ RFC 8188 (aes128gcm) key derivation
+  // First derive PRK using HKDF-Extract with auth secret as salt
+  const prkKey = await crypto.subtle.importKey(
+    'raw',
+    authSecret,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const prk = new Uint8Array(
+    await crypto.subtle.sign('HMAC', prkKey, new Uint8Array(sharedSecret))
+  )
 
-  // Combine auth secret and shared secret
-  const ikm = new Uint8Array(authSecret.length + sharedSecret.byteLength)
-  ikm.set(authSecret)
-  ikm.set(new Uint8Array(sharedSecret), authSecret.length)
+  // Create context for aes128gcm
+  // context = "Content-Encoding: aes128gcm\0" + 0x00 + length(remotePublicKey) as u16 + remotePublicKey + length(localPublicKey) as u16 + localPublicKey
+  const label = encoder.encode('Content-Encoding: aes128gcm\0')
+  const context = new Uint8Array(label.length + 1 + 2 + remotePublicKey.length + 2 + localPublicKey.length)
+  let contextOffset = 0
 
-  // Derive content encryption key and nonce
-  const contentEncryptionKey = await hkdf(salt, ikm, keyInfo, 16)
-  const nonce = await hkdf(salt, ikm, nonceInfo, 12)
+  context.set(label, contextOffset)
+  contextOffset += label.length
+
+  context[contextOffset] = 0x00 // separator
+  contextOffset += 1
+
+  // Remote public key length (big-endian u16)
+  new DataView(context.buffer).setUint16(contextOffset, remotePublicKey.length, false)
+  contextOffset += 2
+  context.set(remotePublicKey, contextOffset)
+  contextOffset += remotePublicKey.length
+
+  // Local public key length (big-endian u16)
+  new DataView(context.buffer).setUint16(contextOffset, localPublicKey.length, false)
+  contextOffset += 2
+  context.set(localPublicKey, contextOffset)
+
+  // Derive CEK using HKDF-Expand
+  const cekInfo = new Uint8Array(context.length + 1)
+  cekInfo.set(context)
+  cekInfo[context.length] = 1 // counter
+
+  const cekKey = await crypto.subtle.importKey(
+    'raw',
+    prk,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const cekFull = new Uint8Array(
+    await crypto.subtle.sign('HMAC', cekKey, cekInfo)
+  )
+  const contentEncryptionKey = cekFull.slice(0, 16)
+
+  // Derive nonce using HKDF-Expand with different label
+  const nonceLabel = encoder.encode('Content-Encoding: nonce\0')
+  const nonceContext = new Uint8Array(nonceLabel.length + 1 + 2 + remotePublicKey.length + 2 + localPublicKey.length)
+  let nonceContextOffset = 0
+
+  nonceContext.set(nonceLabel, nonceContextOffset)
+  nonceContextOffset += nonceLabel.length
+
+  nonceContext[nonceContextOffset] = 0x00
+  nonceContextOffset += 1
+
+  new DataView(nonceContext.buffer).setUint16(nonceContextOffset, remotePublicKey.length, false)
+  nonceContextOffset += 2
+  nonceContext.set(remotePublicKey, nonceContextOffset)
+  nonceContextOffset += remotePublicKey.length
+
+  new DataView(nonceContext.buffer).setUint16(nonceContextOffset, localPublicKey.length, false)
+  nonceContextOffset += 2
+  nonceContext.set(localPublicKey, nonceContextOffset)
+
+  const nonceInfo = new Uint8Array(nonceContext.length + 1)
+  nonceInfo.set(nonceContext)
+  nonceInfo[nonceContext.length] = 1
+
+  const nonceKey = await crypto.subtle.importKey(
+    'raw',
+    prk,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const nonceFull = new Uint8Array(
+    await crypto.subtle.sign('HMAC', nonceKey, nonceInfo)
+  )
+  const nonce = nonceFull.slice(0, 12)
 
   // Add padding to plaintext (at least 2 bytes)
   const paddingLength = 2
