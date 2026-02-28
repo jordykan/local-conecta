@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 export function SplashScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
@@ -15,7 +16,16 @@ export function SplashScreen() {
       setIsMobile(window.innerWidth < 768);
     };
 
+    // Detectar si está corriendo como PWA instalada
+    const checkStandalone = () => {
+      const isPwa =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone;
+      setIsStandalone(!!isPwa);
+    };
+
     checkMobile();
+    checkStandalone();
     window.addEventListener("resize", checkMobile);
 
     // Ocultar el splash estático cuando React carga
@@ -51,31 +61,36 @@ export function SplashScreen() {
       }}
     >
       <div className="flex flex-col items-center gap-6">
-        <div className="animate-pulse">
+        {/* We remove animate-pulse for PWA since the OS static splash image is not pulsing, creating a visual disconnect. We keep it pulsing for web. */}
+        <div className={isStandalone ? "" : "animate-pulse"}>
           <img
             src="/assets/logo_web.png"
             alt="Mercadito"
-            width="200"
-            height="200"
+            width="350"
+            height="350"
           />
         </div>
-        <div className="flex gap-1.5">
-          <div
-            className={`h-3 w-3 animate-bounce rounded-full [animation-delay:-0.3s] ${
-              isDark ? "bg-white" : "bg-primary"
-            }`}
-          />
-          <div
-            className={`h-3 w-3 animate-bounce rounded-full [animation-delay:-0.15s] ${
-              isDark ? "bg-white" : "bg-primary"
-            }`}
-          />
-          <div
-            className={`h-3 w-3 animate-bounce rounded-full ${
-              isDark ? "bg-white" : "bg-primary"
-            }`}
-          />
-        </div>
+
+        {/* Solo mostrar bolitas saltando en web móvil, no en PWA para una experiencia nativa más limpia */}
+        {!isStandalone && (
+          <div className="flex gap-1.5">
+            <div
+              className={`h-3 w-3 animate-bounce rounded-full [animation-delay:-0.3s] ${
+                isDark ? "bg-white" : "bg-primary"
+              }`}
+            />
+            <div
+              className={`h-3 w-3 animate-bounce rounded-full [animation-delay:-0.15s] ${
+                isDark ? "bg-white" : "bg-primary"
+              }`}
+            />
+            <div
+              className={`h-3 w-3 animate-bounce rounded-full ${
+                isDark ? "bg-white" : "bg-primary"
+              }`}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -45,8 +45,8 @@ async function generate() {
 
       for (const res of resolutions) {
         const logoSize = Math.max(
-          200,
-          Math.floor(Math.min(res.w, res.h) * 0.3),
+          350,
+          Math.floor(Math.min(res.w, res.h) * 0.45),
         );
 
         const resizedLogo = await sharp(logoBuffer)

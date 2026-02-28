@@ -117,40 +117,9 @@ export default function RootLayout({
           <img
             src="/assets/logo_web.png"
             alt="Mercadito"
-            width="200"
-            height="200"
-            style={{
-              animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-            }}
+            width="350"
+            height="350"
           />
-          <div style={{ display: "flex", gap: "0.375rem" }}>
-            <div
-              style={{
-                width: "0.75rem",
-                height: "0.75rem",
-                borderRadius: "9999px",
-                animation: "bounce 1s infinite",
-                animationDelay: "-0.3s",
-              }}
-            />
-            <div
-              style={{
-                width: "0.75rem",
-                height: "0.75rem",
-                borderRadius: "9999px",
-                animation: "bounce 1s infinite",
-                animationDelay: "-0.15s",
-              }}
-            />
-            <div
-              style={{
-                width: "0.75rem",
-                height: "0.75rem",
-                borderRadius: "9999px",
-                animation: "bounce 1s infinite",
-              }}
-            />
-          </div>
         </div>
         <style
           dangerouslySetInnerHTML={{
