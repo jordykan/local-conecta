@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -65,7 +66,7 @@ const navItems: Array<{
   {
     href: "/dashboard/settings/notifications",
     label: "Notificaciones",
-    icon: IconBell
+    icon: IconBell,
   },
 ];
 
@@ -261,11 +262,15 @@ export function DashboardSidebar({ business, user }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
       <div className="px-5 py-5">
-        <Link
-          href="/"
-          className="text-base font-bold tracking-tight text-sidebar-foreground"
-        >
-          Local<span className="text-sidebar-primary"> Conecta</span>
+        <Link href="/" className="block">
+          <Image
+            src="/assets/logo_web.png"
+            alt="Mercadito"
+            width={150}
+            height={40}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
       </div>
       <NavContent business={business} user={user} pathname={pathname} />
@@ -291,8 +296,16 @@ export function DashboardMobileNav({ business, user }: SidebarProps) {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 bg-sidebar p-0">
         <SheetHeader className="px-5 py-5">
-          <SheetTitle className="text-left text-base font-bold tracking-tight text-sidebar-foreground">
-            Local<span className="text-sidebar-primary"> Conecta</span>
+          <SheetTitle asChild>
+            <Link href="/" className="block text-left">
+              <Image
+                src="/assets/logo_web.png"
+                alt="Mercadito"
+                width={150}
+                height={40}
+                className="h-8 w-auto"
+              />
+            </Link>
           </SheetTitle>
         </SheetHeader>
         <div className="flex flex-1 flex-col">

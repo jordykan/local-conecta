@@ -1,19 +1,19 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { getCategories, getCommunities } from "@/lib/queries/business"
-import { BusinessRegistrationWizard } from "@/components/registration/BusinessRegistrationWizard"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCategories, getCommunities } from "@/lib/queries/business";
+import { BusinessRegistrationWizard } from "@/components/registration/BusinessRegistrationWizard";
 
 export const metadata = {
-  title: "Registrar negocio — Local Conecta",
-}
+  title: "Registrar negocio — Mercadito",
+};
 
 export default async function RegisterBusinessPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login?next=/register-business")
+  if (!user) redirect("/login?next=/register-business");
 
   // Redirect if user already has a business
   const { data: existingBusiness } = await supabase
@@ -21,14 +21,14 @@ export default async function RegisterBusinessPage() {
     .select("id")
     .eq("owner_id", user.id)
     .limit(1)
-    .maybeSingle()
+    .maybeSingle();
 
-  if (existingBusiness) redirect("/dashboard")
+  if (existingBusiness) redirect("/dashboard");
 
   const [{ data: categories }, { data: communities }] = await Promise.all([
     getCategories(),
     getCommunities(),
-  ])
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
@@ -47,5 +47,5 @@ export default async function RegisterBusinessPage() {
         userId={user.id}
       />
     </div>
-  )
+  );
 }

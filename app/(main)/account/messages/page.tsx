@@ -1,23 +1,23 @@
-import { redirect } from "next/navigation"
-import { IconMessageCircle } from "@tabler/icons-react"
-import { createClient } from "@/lib/supabase/server"
-import { getConversationsByUser } from "@/lib/queries/messages"
-import { ConversationCard } from "@/components/account/ConversationCard"
-import { EmptyState } from "@/components/shared/EmptyState"
+import { redirect } from "next/navigation";
+import { IconMessageCircle } from "@tabler/icons-react";
+import { createClient } from "@/lib/supabase/server";
+import { getConversationsByUser } from "@/lib/queries/messages";
+import { ConversationCard } from "@/components/account/ConversationCard";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export const metadata = {
-  title: "Mis mensajes — Local Conecta",
-}
+  title: "Mis mensajes — Mercadito",
+};
 
 export default async function MessagesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/login");
 
-  const { data: conversations } = await getConversationsByUser(user.id)
+  const { data: conversations } = await getConversationsByUser(user.id);
 
   return (
     <div className="space-y-6">
@@ -31,10 +31,7 @@ export default async function MessagesPage() {
       {conversations && conversations.length > 0 ? (
         <div className="space-y-2">
           {conversations.map((conv) => (
-            <ConversationCard
-              key={conv.conversation_id}
-              conversation={conv}
-            />
+            <ConversationCard key={conv.conversation_id} conversation={conv} />
           ))}
         </div>
       ) : (
@@ -47,5 +44,5 @@ export default async function MessagesPage() {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,10 +1,15 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { IconLayoutDashboard, IconBuilding, IconCategory, IconHome } from "@tabler/icons-react"
-import { cn } from "@/lib/utils"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  IconLayoutDashboard,
+  IconBuilding,
+  IconCategory,
+  IconHome,
+} from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const navItems = [
   {
@@ -22,19 +27,29 @@ const navItems = [
     href: "/admin/categories",
     icon: IconCategory,
   },
-]
+];
 
-function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () => void }) {
+function SidebarContent({
+  pathname,
+  onClose,
+}: {
+  pathname: string;
+  onClose?: () => void;
+}) {
   return (
     <>
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/admin" className="flex items-center gap-3 font-semibold" onClick={onClose}>
+        <Link
+          href="/admin"
+          className="flex items-center gap-3 font-semibold"
+          onClick={onClose}
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500 shadow-sm">
             <span className="text-lg font-bold text-white">LC</span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm leading-tight">Admin Panel</span>
-            <span className="text-xs text-muted-foreground">Local Conecta</span>
+            <span className="text-xs text-muted-foreground">Mercadito</span>
           </div>
         </Link>
       </div>
@@ -44,8 +59,10 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
           Menú Principal
         </p>
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
-          const Icon = item.icon
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/admin" && pathname.startsWith(item.href));
+          const Icon = item.icon;
 
           return (
             <Link
@@ -56,16 +73,21 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
                 "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
                   ? "bg-orange-500 text-white shadow-sm shadow-orange-500/20"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
-              <Icon className={cn("h-5 w-5 transition-transform", isActive && "scale-110")} />
+              <Icon
+                className={cn(
+                  "h-5 w-5 transition-transform",
+                  isActive && "scale-110",
+                )}
+              />
               {item.title}
               {isActive && (
                 <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white" />
               )}
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -80,16 +102,16 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
         </Link>
       </div>
     </>
-  )
+  );
 }
 
 type AdminSidebarProps = {
-  mobileOpen: boolean
-  onMobileClose: () => void
-}
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+};
 
 export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <>
@@ -107,5 +129,5 @@ export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
         </SheetContent>
       </Sheet>
     </>
-  )
+  );
 }

@@ -1,13 +1,17 @@
 {
-  "name": "Local Conecta",
-  "short_name": "Local Conecta",
+  "name": "Mercadito",
+  "short_name": "Mercadito",
   "description": "Conecta con negocios locales de tu comunidad",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ea580c",
   "orientation": "portrait-primary",
-  "categories": ["business", "lifestyle", "shopping"],
+  "categories": [
+    "business",
+    "lifestyle",
+    "shopping"
+  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -29,7 +33,7 @@
     },
     {
       "src": "/icons/icon-144x144.png",
-      "sizes": "144x144.png",
+      "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },

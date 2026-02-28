@@ -1,10 +1,22 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
-import { IconMenu2, IconUser, IconCalendarEvent, IconMessageCircle, IconLogout, IconChevronDown, IconLayoutDashboard, IconSun, IconMoon, IconShield } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import {
+  IconMenu2,
+  IconUser,
+  IconCalendarEvent,
+  IconMessageCircle,
+  IconLogout,
+  IconChevronDown,
+  IconLayoutDashboard,
+  IconSun,
+  IconMoon,
+  IconShield,
+} from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -12,28 +24,28 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { UnreadBadge } from "@/components/shared/UnreadBadge"
-import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
-import { logout } from "@/app/(auth)/actions"
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { UnreadBadge } from "@/components/shared/UnreadBadge";
+import { useUnreadCount } from "@/lib/hooks/useUnreadCount";
+import { logout } from "@/app/(auth)/actions";
 
 interface NavbarProps {
   user?: {
-    id: string
-    email: string
-    fullName: string
-    avatarUrl?: string | null
-    role?: string
-    businessId?: string
-  } | null
+    id: string;
+    email: string;
+    fullName: string;
+    avatarUrl?: string | null;
+    role?: string;
+    businessId?: string;
+  } | null;
 }
 
 function UserAvatar({ user }: { user: NonNullable<NavbarProps["user"]> }) {
@@ -43,7 +55,7 @@ function UserAvatar({ user }: { user: NonNullable<NavbarProps["user"]> }) {
       .map((n) => n[0])
       .join("")
       .slice(0, 2)
-      .toUpperCase() || user.email[0].toUpperCase()
+      .toUpperCase() || user.email[0].toUpperCase();
 
   if (user.avatarUrl) {
     return (
@@ -52,18 +64,18 @@ function UserAvatar({ user }: { user: NonNullable<NavbarProps["user"]> }) {
         alt={user.fullName}
         className="size-8 rounded-full object-cover ring-2 ring-border"
       />
-    )
+    );
   }
 
   return (
     <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
       {initials}
     </div>
-  )
+  );
 }
 
 function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <Button
@@ -76,19 +88,19 @@ function ThemeToggle() {
       <IconSun className="size-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
       <IconMoon className="absolute size-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
     </Button>
-  )
+  );
 }
 
 export function Navbar({ user }: NavbarProps) {
-  const pathname = usePathname()
-  const isHome = pathname === "/"
-  const transparent = isHome
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const transparent = isHome;
 
   // Get unread message count (combined for business owners: personal + business messages)
   const { count: unreadCount } = useUnreadCount({
     userId: user?.id ?? "",
     businessId: user?.businessId,
-  })
+  });
 
   return (
     <header
@@ -99,12 +111,34 @@ export function Navbar({ user }: NavbarProps) {
       }
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span
-            className={`text-lg font-semibold tracking-tight ${transparent ? "text-white" : "text-foreground"}`}
-          >
-            Local<span className="text-primary"> Conecta</span>
-          </span>
+        <Link
+          href="/"
+          className="group relative flex items-center gap-2 py-2 transition-transform duration-300 ease-out hover:scale-[1.02] active:scale-[0.98]"
+        >
+          {/* Logo para móvil */}
+          <div className="relative md:hidden">
+            <Image
+              src="/assets/web2.png"
+              alt="Mercadito"
+              width={120}
+              height={35}
+              className="h-9 w-auto object-contain transition-all duration-300 group-hover:brightness-110 group-hover:drop-shadow-[0_0_6px_rgba(255,119,0,0.12)]"
+              priority
+            />
+            <div className="absolute inset-0 rounded-md opacity-0 ring-1 ring-orange-500/15 transition-opacity duration-300 group-hover:opacity-100" />
+          </div>
+
+          {/* Logo para desktop */}
+          <div className="relative hidden md:block">
+            <Image
+              src="/assets/web2.png"
+              alt="Mercadito"
+              width={160}
+              height={45}
+              className="h-11 w-auto object-contain transition-all duration-300 group-hover:brightness-110 group-hover:drop-shadow-[0_0_8px_rgba(255,119,0,0.15)]"
+              priority
+            />
+          </div>
         </Link>
 
         {/* Desktop nav */}
@@ -119,7 +153,6 @@ export function Navbar({ user }: NavbarProps) {
           >
             Explorar
           </Link>
-
 
           {!transparent && <ThemeToggle />}
 
@@ -154,9 +187,13 @@ export function Navbar({ user }: NavbarProps) {
                   </p>
                 </div>
                 <DropdownMenuSeparator />
-                {(user.role === "community_admin" || user.role === "super_admin") && (
+                {(user.role === "community_admin" ||
+                  user.role === "super_admin") && (
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2">
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2.5 px-3 py-2"
+                    >
                       <IconShield className="size-4 text-orange-500" />
                       Panel Admin
                     </Link>
@@ -164,31 +201,45 @@ export function Navbar({ user }: NavbarProps) {
                 )}
                 {user.role === "business_owner" && (
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2">
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2.5 px-3 py-2"
+                    >
                       <IconLayoutDashboard className="size-4 text-muted-foreground" />
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/account" className="flex items-center gap-2.5 px-3 py-2">
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-2.5 px-3 py-2"
+                  >
                     <IconUser className="size-4 text-muted-foreground" />
                     Mi cuenta
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/account/bookings" className="flex items-center gap-2.5 px-3 py-2">
+                  <Link
+                    href="/account/bookings"
+                    className="flex items-center gap-2.5 px-3 py-2"
+                  >
                     <IconCalendarEvent className="size-4 text-muted-foreground" />
                     Mis apartados
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/account/messages" className="flex items-center justify-between px-3 py-2">
+                  <Link
+                    href="/account/messages"
+                    className="flex items-center justify-between px-3 py-2"
+                  >
                     <div className="flex items-center gap-2.5">
                       <IconMessageCircle className="size-4 text-muted-foreground" />
                       Mis mensajes
                     </div>
-                    {unreadCount > 0 && <UnreadBadge count={unreadCount} size="sm" />}
+                    {unreadCount > 0 && (
+                      <UnreadBadge count={unreadCount} size="sm" />
+                    )}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -232,11 +283,17 @@ export function Navbar({ user }: NavbarProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
-            <SheetHeader>
+            <SheetHeader className="pb-4">
               <SheetTitle>
-                <span className="text-lg font-semibold tracking-tight text-foreground">
-                  Local<span className="text-primary"> Conecta</span>
-                </span>
+                <div className="relative">
+                  <Image
+                    src="/assets/logo_web.png"
+                    alt="Mercadito"
+                    width={140}
+                    height={40}
+                    className="h-10 w-auto object-contain"
+                  />
+                </div>
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-1 px-6">
@@ -269,7 +326,8 @@ export function Navbar({ user }: NavbarProps) {
                       </p>
                     </div>
                   </div>
-                  {(user.role === "community_admin" || user.role === "super_admin") && (
+                  {(user.role === "community_admin" ||
+                    user.role === "super_admin") && (
                     <SheetClose asChild>
                       <Link
                         href="/admin"
@@ -318,7 +376,9 @@ export function Navbar({ user }: NavbarProps) {
                         <IconMessageCircle className="size-4" />
                         Mis mensajes
                       </div>
-                      {unreadCount > 0 && <UnreadBadge count={unreadCount} size="sm" />}
+                      {unreadCount > 0 && (
+                        <UnreadBadge count={unreadCount} size="sm" />
+                      )}
                     </Link>
                   </SheetClose>
                   <Separator className="my-2" />
@@ -346,5 +406,5 @@ export function Navbar({ user }: NavbarProps) {
         </Sheet>
       </nav>
     </header>
-  )
+  );
 }

@@ -1,41 +1,38 @@
-import { Suspense } from "react"
-import { IconSearch, IconBuildingStore } from "@tabler/icons-react"
-import type { Metadata } from "next"
-import { createClient } from "@/lib/supabase/server"
-import {
-  getBusinessesDirectory,
-  getCategories,
-} from "@/lib/queries/business"
-import type { BusinessDirectoryItem } from "@/lib/queries/business"
-import { getAverageRating, countReviews } from "@/lib/queries/reviews"
-import { getFavoritesByUser } from "@/lib/queries/favorites"
-import { isCurrentlyOpen } from "@/components/businesses/BusinessHoursDisplay"
-import { BusinessCard } from "@/components/businesses/BusinessCard"
-import { BusinessFilters } from "@/components/businesses/BusinessFilters"
-import { SearchBar } from "@/components/shared/SearchBar"
-import { EmptyState } from "@/components/shared/EmptyState"
+import { Suspense } from "react";
+import { IconSearch, IconBuildingStore } from "@tabler/icons-react";
+import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { getBusinessesDirectory, getCategories } from "@/lib/queries/business";
+import type { BusinessDirectoryItem } from "@/lib/queries/business";
+import { getAverageRating, countReviews } from "@/lib/queries/reviews";
+import { getFavoritesByUser } from "@/lib/queries/favorites";
+import { isCurrentlyOpen } from "@/components/businesses/BusinessHoursDisplay";
+import { BusinessCard } from "@/components/businesses/BusinessCard";
+import { BusinessFilters } from "@/components/businesses/BusinessFilters";
+import { SearchBar } from "@/components/shared/SearchBar";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export const metadata: Metadata = {
-  title: "Negocios — Local Conecta",
+  title: "Negocios — Mercadito",
   description:
     "Descubre los negocios locales de tu comunidad. Busca por nombre, categoría y más.",
-}
+};
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; category?: string; promotions?: string }>
+  searchParams: Promise<{ q?: string; category?: string; promotions?: string }>;
 }
 
 export default async function BusinessesPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const q = params.q?.trim() ?? ""
-  const categorySlug = params.category ?? ""
-  const hasPromotionsFilter = params.promotions === "true"
+  const params = await searchParams;
+  const q = params.q?.trim() ?? "";
+  const categorySlug = params.category ?? "";
+  const hasPromotionsFilter = params.promotions === "true";
 
   // Get current user and favorites
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   const [{ data: businesses }, { data: categories }, { data: favorites }] =
     await Promise.all([
@@ -46,16 +43,16 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
       }),
       getCategories(),
       user ? getFavoritesByUser(user.id) : Promise.resolve({ data: null }),
-    ])
+    ]);
 
-  const allBusinesses = (businesses ?? []) as BusinessDirectoryItem[]
-  const allCategories = categories ?? []
-  const favoriteIds = new Set(favorites?.map((f) => f.business_id) ?? [])
+  const allBusinesses = (businesses ?? []) as BusinessDirectoryItem[];
+  const allCategories = categories ?? [];
+  const favoriteIds = new Set(favorites?.map((f) => f.business_id) ?? []);
 
   // Get category name for heading
   const activeCat = categorySlug
     ? allCategories.find((c) => c.slug === categorySlug)
-    : null
+    : null;
 
   // Obtener ratings para cada negocio
   const businessesWithRatings = await Promise.all(
@@ -63,10 +60,10 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
       const [averageRating, totalReviews] = await Promise.all([
         getAverageRating(biz.id),
         countReviews(biz.id),
-      ])
-      return { ...biz, averageRating, totalReviews }
+      ]);
+      return { ...biz, averageRating, totalReviews };
     }),
-  )
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -103,9 +100,9 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
             </p>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {businessesWithRatings.map((biz) => {
-                const hours = biz.business_hours ?? []
-                const isOpen = isCurrentlyOpen(hours as any)
-                const hasPromotions = (biz.promotions?.length ?? 0) > 0
+                const hours = biz.business_hours ?? [];
+                const isOpen = isCurrentlyOpen(hours as any);
+                const hasPromotions = (biz.promotions?.length ?? 0) > 0;
 
                 return (
                   <BusinessCard
@@ -114,9 +111,7 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
                     slug={biz.slug}
                     name={biz.name}
                     category={biz.categories?.name ?? "Sin categoría"}
-                    description={
-                      biz.short_description || biz.description || ""
-                    }
+                    description={biz.short_description || biz.description || ""}
                     coverUrl={biz.cover_url ?? undefined}
                     logoUrl={biz.logo_url ?? undefined}
                     rating={4.5}
@@ -127,7 +122,7 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
                     totalReviews={biz.totalReviews}
                     isFavorited={favoriteIds.has(biz.id)}
                   />
-                )
+                );
               })}
             </div>
           </>
@@ -144,5 +139,5 @@ export default async function BusinessesPage({ searchParams }: PageProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

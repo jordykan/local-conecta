@@ -1,28 +1,28 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { getProfile } from "@/lib/queries/profile"
-import { ProfileForm } from "@/components/account/ProfileForm"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/queries/profile";
+import { ProfileForm } from "@/components/account/ProfileForm";
 
 export const metadata = {
-  title: "Mi cuenta — Local Conecta",
-}
+  title: "Mi cuenta — Mercadito",
+};
 
 export default async function AccountPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/login");
 
-  const { data: profile } = await getProfile(user.id)
+  const { data: profile } = await getProfile(user.id);
 
   const memberSince = new Date(
-    profile?.created_at ?? user.created_at ?? Date.now()
+    profile?.created_at ?? user.created_at ?? Date.now(),
   ).toLocaleDateString("es-MX", {
     month: "long",
     year: "numeric",
-  })
+  });
 
   return (
     <div className="space-y-6">
@@ -43,5 +43,5 @@ export default async function AccountPage() {
         memberSince={memberSince}
       />
     </div>
-  )
+  );
 }

@@ -1,42 +1,42 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { IconArrowLeft } from "@tabler/icons-react"
-import { createClient } from "@/lib/supabase/server"
-import { getMessagesByConversation } from "@/lib/queries/messages"
-import { MessageThread } from "@/components/account/MessageThread"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { IconArrowLeft } from "@tabler/icons-react";
+import { createClient } from "@/lib/supabase/server";
+import { getMessagesByConversation } from "@/lib/queries/messages";
+import { MessageThread } from "@/components/account/MessageThread";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const metadata = {
-  title: "Conversacion — Local Conecta",
-}
+  title: "Conversacion — Mercadito",
+};
 
 export default async function ConversationPage({
   params,
 }: {
-  params: Promise<{ conversationId: string }>
+  params: Promise<{ conversationId: string }>;
 }) {
-  const { conversationId } = await params
+  const { conversationId } = await params;
 
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/login");
 
   // Get user profile for full name
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
     .eq("id", user.id)
-    .single()
+    .single();
 
   const { data: messages, business } = await getMessagesByConversation(
     conversationId,
-    user.id
-  )
+    user.id,
+  );
 
-  if (!business) redirect("/account/messages")
+  if (!business) redirect("/account/messages");
 
   return (
     <div className="space-y-4">
@@ -77,5 +77,5 @@ export default async function ConversationPage({
         currentUserName={profile?.full_name || "Usuario"}
       />
     </div>
-  )
+  );
 }

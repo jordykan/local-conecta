@@ -60,11 +60,7 @@ self.addEventListener("fetch", (event) => {
     fetch(request)
       .then((response) => {
         // ✅ Solo cachear solicitudes GET (Cache API no soporta POST/PUT/DELETE)
-        if (
-          response &&
-          response.status === 200 &&
-          request.method === "GET"
-        ) {
+        if (response && response.status === 200 && request.method === "GET") {
           const clone = response.clone();
           caches.open(DYNAMIC_CACHE).then((cache) => {
             cache.put(request, clone);
@@ -107,7 +103,7 @@ self.addEventListener("push", (event) => {
       } catch {
         console.error("[SW] All parsing failed, using fallback");
         data = {
-          title: "Local Conecta",
+          title: "Mercadito",
           body: event.data.text() || "Nueva notificación",
         };
       }
@@ -115,12 +111,12 @@ self.addEventListener("push", (event) => {
   } else {
     console.warn("[SW] No event.data, using default");
     data = {
-      title: "Local Conecta",
+      title: "Mercadito",
       body: "Notificación recibida",
     };
   }
 
-  const title = data.title || "Local Conecta";
+  const title = data.title || "Mercadito";
 
   // ✅ iOS-compatible notification options
   const options = {

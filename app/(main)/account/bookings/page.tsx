@@ -1,36 +1,36 @@
-import { redirect } from "next/navigation"
-import { IconCalendarEvent } from "@tabler/icons-react"
-import { createClient } from "@/lib/supabase/server"
-import { getBookingsByUser } from "@/lib/queries/bookings"
-import type { BookingWithRelations } from "@/lib/queries/bookings"
-import { BookingCard } from "@/components/account/BookingCard"
-import { EmptyState } from "@/components/shared/EmptyState"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { redirect } from "next/navigation";
+import { IconCalendarEvent } from "@tabler/icons-react";
+import { createClient } from "@/lib/supabase/server";
+import { getBookingsByUser } from "@/lib/queries/bookings";
+import type { BookingWithRelations } from "@/lib/queries/bookings";
+import { BookingCard } from "@/components/account/BookingCard";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata = {
-  title: "Mis apartados — Local Conecta",
-}
+  title: "Mis apartados — Mercadito",
+};
 
 export default async function BookingsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/login");
 
-  const { data: bookings } = await getBookingsByUser(user.id)
-  const allBookings = (bookings ?? []) as BookingWithRelations[]
+  const { data: bookings } = await getBookingsByUser(user.id);
+  const allBookings = (bookings ?? []) as BookingWithRelations[];
 
   const activeBookings = allBookings.filter(
-    (b) => b.status === "pending" || b.status === "confirmed"
-  )
+    (b) => b.status === "pending" || b.status === "confirmed",
+  );
   const pastBookings = allBookings.filter(
     (b) =>
       b.status === "completed" ||
       b.status === "cancelled" ||
-      b.status === "no_show"
-  )
+      b.status === "no_show",
+  );
 
   return (
     <div className="space-y-6">
@@ -82,5 +82,5 @@ export default async function BookingsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

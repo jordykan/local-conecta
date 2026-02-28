@@ -117,9 +117,9 @@ export function HeroSearchBar() {
 
       {/* Autocomplete dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-popover shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-[50vh] overflow-hidden rounded-xl border bg-popover shadow-xl">
           {results.length > 0 ? (
-            <ul className="divide-y divide-border/50">
+            <ul className="max-h-[40vh] divide-y divide-border/50 overflow-auto">
               {results.map((biz) => (
                 <li key={biz.id}>
                   <button

@@ -1,49 +1,49 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { usePWA } from '@/lib/hooks/usePWA'
-import { IconX, IconDownload } from '@tabler/icons-react'
-import { Button } from '@/components/ui/button'
+import { useEffect, useState } from "react";
+import { usePWA } from "@/lib/hooks/usePWA";
+import { IconX, IconDownload } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 
 export function InstallPrompt() {
-  const { canInstall, promptInstall } = usePWA()
-  const [isDismissed, setIsDismissed] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
+  const { canInstall, promptInstall } = usePWA();
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     // Verificar si el usuario ya descartó el banner anteriormente
-    const dismissed = localStorage.getItem('pwa-install-dismissed')
+    const dismissed = localStorage.getItem("pwa-install-dismissed");
     if (dismissed) {
-      setIsDismissed(true)
-      return
+      setIsDismissed(true);
+      return;
     }
 
     // Mostrar banner después de 3 segundos si puede instalar
     if (canInstall) {
       const timer = setTimeout(() => {
-        setIsVisible(true)
-      }, 3000)
+        setIsVisible(true);
+      }, 3000);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [canInstall])
+  }, [canInstall]);
 
   const handleInstall = async () => {
-    const accepted = await promptInstall()
+    const accepted = await promptInstall();
     if (accepted) {
-      setIsVisible(false)
+      setIsVisible(false);
     }
-  }
+  };
 
   const handleDismiss = () => {
-    setIsVisible(false)
-    setIsDismissed(true)
+    setIsVisible(false);
+    setIsDismissed(true);
     // Guardar en localStorage para no volver a mostrar
-    localStorage.setItem('pwa-install-dismissed', 'true')
-  }
+    localStorage.setItem("pwa-install-dismissed", "true");
+  };
 
   if (!canInstall || isDismissed || !isVisible) {
-    return null
+    return null;
   }
 
   return (
@@ -64,18 +64,14 @@ export function InstallPrompt() {
 
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Instalar Local Conecta
+              Instalar Mercadito
             </h3>
             <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
               Accede más rápido y recibe notificaciones de reservas y mensajes.
             </p>
 
             <div className="mt-3 flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleInstall}
-                className="h-8 text-xs"
-              >
+              <Button size="sm" onClick={handleInstall} className="h-8 text-xs">
                 Instalar
               </Button>
               <Button
@@ -91,5 +87,5 @@ export function InstallPrompt() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -9,6 +9,7 @@ import { PWAInitializer } from "@/components/PWAInitializer";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { AuthSubscriptionSync } from "@/components/AuthSubscriptionSync";
+import { SplashScreen } from "@/components/SplashScreen";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -23,18 +24,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Local Conecta — Descubre negocios locales",
+  title: "Mercadito — Descubre negocios locales",
   description:
     "Encuentra, aparta y conecta con negocios locales de tu comunidad. Explora el directorio, descubre promociones y apoya lo local.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Local Conecta",
+    title: "Mercadito",
   },
-  applicationName: "Local Conecta",
-  keywords: ["negocios locales", "reservas", "servicios", "productos", "comunidad"],
-  authors: [{ name: "Local Conecta" }],
+  applicationName: "Mercadito",
+  keywords: [
+    "negocios locales",
+    "reservas",
+    "servicios",
+    "productos",
+    "comunidad",
+  ],
+  authors: [{ name: "Mercadito" }],
   formatDetection: {
     telephone: false,
   },
@@ -72,12 +88,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <RealtimeProvider>
+            <SplashScreen />
             <PWAInitializer />
             {children}
             <InstallPrompt />
             <PushNotificationManager />
             <AuthSubscriptionSync />
-            <Toaster closeButton={true} position="top-right" richColors={true} />
+            <Toaster
+              closeButton={true}
+              position="top-right"
+              richColors={true}
+            />
           </RealtimeProvider>
         </ThemeProvider>
       </body>

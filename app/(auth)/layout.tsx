@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { IconMapPin, IconStarFilled } from "@tabler/icons-react"
 
 export default function AuthLayout({
@@ -10,12 +11,15 @@ export default function AuthLayout({
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Left panel — Brand */}
       <div className="relative hidden bg-[oklch(0.18_0.02_260)] lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <Link
-          href="/"
-          className="text-xl font-bold tracking-tight text-white/90"
-        >
-          Local
-          <span className="text-[oklch(0.837_0.128_66.29)]"> Conecta</span>
+        <Link href="/" className="block">
+          <Image
+            src="/assets/logo_web.png"
+            alt="Mercadito"
+            width={200}
+            height={60}
+            className="h-10 w-auto lg:h-12"
+            priority
+          />
         </Link>
 
         <div className="max-w-md space-y-10">
@@ -68,8 +72,14 @@ export default function AuthLayout({
       {/* Right panel — Form */}
       <div className="flex flex-col bg-background">
         <div className="flex items-center justify-center p-6 lg:hidden">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Local<span className="text-primary"> Conecta</span>
+          <Link href="/" className="block">
+            <Image
+              src="/assets/logo_web.png"
+              alt="Mercadito"
+              width={180}
+              height={50}
+              className="h-10 w-auto"
+            />
           </Link>
         </div>
 

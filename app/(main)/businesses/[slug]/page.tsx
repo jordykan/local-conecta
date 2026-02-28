@@ -34,15 +34,15 @@ export async function generateMetadata({
   const { data: business } = await getBusinessBySlug(slug);
 
   if (!business) {
-    return { title: "Negocio no encontrado — Local Conecta" };
+    return { title: "Negocio no encontrado — Mercadito" };
   }
 
   return {
-    title: `${business.name} — Local Conecta`,
+    title: `${business.name} — Mercadito`,
     description:
       business.short_description ||
       business.description ||
-      `Conoce ${business.name} en Local Conecta`,
+      `Conoce ${business.name} en Mercadito`,
   };
 }
 
@@ -96,9 +96,7 @@ export default async function BusinessPage({ params }: PageProps) {
           .eq("business_id", business.id)
           .single()
       : Promise.resolve({ data: null }),
-    user
-      ? isFavorited(user.id, business.id)
-      : Promise.resolve(false),
+    user ? isFavorited(user.id, business.id) : Promise.resolve(false),
   ]);
 
   return (

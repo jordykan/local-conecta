@@ -1,16 +1,16 @@
-import Image from "next/image"
-import Link from "next/link"
-import { IconChevronDown } from "@tabler/icons-react"
-import { HeroSearchBar } from "@/components/shared/HeroSearchBar"
-import { Badge } from "@/components/ui/badge"
-import heroBg from "@/assets/hero-bg.jpg"
+import Image from "next/image";
+import Link from "next/link";
+import { IconChevronDown } from "@tabler/icons-react";
+import { HeroSearchBar } from "@/components/shared/HeroSearchBar";
+import { Badge } from "@/components/ui/badge";
+import heroBg from "@/assets/hero.jpeg";
 
 const quickCategories = [
   { label: "Comida", slug: "comida-y-bebidas" },
   { label: "Servicios", slug: "servicios-del-hogar" },
   { label: "Salud", slug: "salud-y-bienestar" },
   { label: "Belleza", slug: "belleza" },
-]
+];
 
 export function HeroSection() {
   return (
@@ -31,16 +31,24 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-3xl px-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl lg:leading-[1.1]">
+        {/* Hero Image */}
+        <div className="mb-6 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both md:mb-8">
+          <Image
+            src="/assets/hero_logo2.png"
+            alt="Mercadito"
+            width={340}
+            height={340}
+            priority
+            style={{ width: "auto", height: "auto" }}
+          />
+        </div>
+
+        <h1 className="animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold tracking-tight text-white duration-700 fill-mode-both delay-150 md:text-5xl lg:text-6xl lg:leading-[1.1]">
           Descubre los negocios{" "}
           <span className="italic text-primary">de tu comunidad</span>
         </h1>
 
-        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/70 md:text-xl">
-          Encuentra, aparta y conecta con negocios locales cerca de ti
-        </p>
-
-        <div className="mt-8 md:mt-10">
+        <div className="relative z-[50] animate-in fade-in slide-in-from-bottom-4 mt-8 duration-700 fill-mode-both delay-500 md:mt-10">
           <HeroSearchBar />
         </div>
 
@@ -60,12 +68,12 @@ export function HeroSection() {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1">
+      <div className="absolute bottom-8 left-1/2 z-[5] flex -translate-x-1/2 flex-col items-center gap-1">
         <span className="text-xs font-medium uppercase tracking-widest text-white/40">
           Explorar más
         </span>
         <IconChevronDown className="size-5 animate-bounce text-white/40" />
       </div>
     </section>
-  )
+  );
 }
