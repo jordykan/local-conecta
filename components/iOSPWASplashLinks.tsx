@@ -1,4 +1,4 @@
-export function iOSPWASplashLinks() {
+export function IOSPWASplashLinks() {
   return (
     <>
       <link
