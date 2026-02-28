@@ -55,7 +55,7 @@ export async function register(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -66,8 +66,19 @@ export async function register(formData: FormData) {
   })
 
   if (error) {
+    console.error("❌ Error de registro:", {
+      message: error.message,
+      name: error.name,
+      status: error.status,
+      fullError: error,
+    })
     return { error: translateError(error.message) }
   }
+
+  console.log("✅ Usuario creado:", {
+    userId: data.user?.id,
+    email: data.user?.email,
+  })
 
   redirect("/")
 }

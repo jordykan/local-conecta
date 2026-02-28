@@ -1,6 +1,7 @@
 export function IOSPWASplashLinks() {
   return (
     <>
+      <meta name="apple-mobile-web-app-capable" content="yes" />
       <link
         rel="apple-touch-startup-image"
         media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"

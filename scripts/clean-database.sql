@@ -56,6 +56,10 @@ BEGIN
     RAISE NOTICE 'Comunidades: % registros', table_count;
     total_records := total_records + table_count;
 
+    SELECT COUNT(*) INTO table_count FROM auth.users;
+    RAISE NOTICE 'Usuarios Auth: % registros', table_count;
+    total_records := total_records + table_count;
+
     SELECT COUNT(*) INTO table_count FROM categories;
     RAISE NOTICE 'Categorías: % registros (SE PRESERVARÁN ✅)', table_count;
 
@@ -106,6 +110,10 @@ DELETE FROM profiles;
 -- 13. Eliminar comunidades
 DELETE FROM communities;
 
+-- 14. Eliminar usuarios de autenticación (auth.users)
+-- IMPORTANTE: Esto eliminará todas las cuentas de usuario
+DELETE FROM auth.users;
+
 -- NO eliminar categorías ✅
 -- DELETE FROM categories; -- Comentado para preservar
 
@@ -154,6 +162,9 @@ BEGIN
 
     SELECT COUNT(*) INTO table_count FROM communities;
     RAISE NOTICE 'Comunidades restantes: %', table_count;
+
+    SELECT COUNT(*) INTO table_count FROM auth.users;
+    RAISE NOTICE 'Usuarios Auth restantes: %', table_count;
 
     RAISE NOTICE '';
 
