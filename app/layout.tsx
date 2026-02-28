@@ -75,11 +75,123 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={notoSans.variable} suppressHydrationWarning>
-      <head />
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Detectar tema del sistema
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const savedTheme = localStorage.getItem('theme');
+                const theme = savedTheme === 'dark' || (savedTheme !== 'light' && isDark);
+
+                // Aplicar fondo inmediatamente en móviles
+                if (window.innerWidth < 768) {
+                  document.documentElement.style.backgroundColor = theme ? '#000000' : '#ffffff';
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        {/* Static splash screen - se muestra inmediatamente en móviles */}
+        <div
+          id="static-splash"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "1.5rem",
+          }}
+        >
+          <img
+            src="/assets/logo_web.png"
+            alt="Mercadito"
+            width="200"
+            height="200"
+            style={{ animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}
+          />
+          <div style={{ display: "flex", gap: "0.375rem" }}>
+            <div
+              style={{
+                width: "0.75rem",
+                height: "0.75rem",
+                borderRadius: "9999px",
+                animation: "bounce 1s infinite",
+                animationDelay: "-0.3s",
+              }}
+            />
+            <div
+              style={{
+                width: "0.75rem",
+                height: "0.75rem",
+                borderRadius: "9999px",
+                animation: "bounce 1s infinite",
+                animationDelay: "-0.15s",
+              }}
+            />
+            <div
+              style={{
+                width: "0.75rem",
+                height: "0.75rem",
+                borderRadius: "9999px",
+                animation: "bounce 1s infinite",
+              }}
+            />
+          </div>
+        </div>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              #static-splash {
+                background-color: ${viewport.themeColor};
+              }
+              @media (prefers-color-scheme: dark) {
+                #static-splash {
+                  background-color: #000000;
+                }
+                #static-splash > div > div {
+                  background-color: #ffffff;
+                }
+              }
+              @media (prefers-color-scheme: light) {
+                #static-splash {
+                  background-color: #ffffff;
+                }
+                #static-splash > div > div {
+                  background-color: ${viewport.themeColor};
+                }
+              }
+              @media (min-width: 768px) {
+                #static-splash {
+                  display: none !important;
+                }
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+              }
+              @keyframes bounce {
+                0%, 100% {
+                  transform: translateY(-25%);
+                  animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+                }
+                50% {
+                  transform: translateY(0);
+                  animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+                }
+              }
+            `,
+          }}
+        />
         <NextTopLoader />
         <ThemeProvider
           attribute="class"

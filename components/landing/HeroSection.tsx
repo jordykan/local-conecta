@@ -31,22 +31,14 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-3xl px-4 text-center">
-        {/* Hero Image */}
-        <div className="mb-6 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both md:mb-8">
-          <Image
-            src="/assets/hero_logo2.png"
-            alt="Mercadito"
-            width={340}
-            height={340}
-            priority
-            style={{ width: "auto", height: "auto" }}
-          />
-        </div>
-
-        <h1 className="animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold tracking-tight text-white duration-700 fill-mode-both delay-150 md:text-5xl lg:text-6xl lg:leading-[1.1]">
+        <h1 className="animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold tracking-tight text-white duration-700 fill-mode-both md:text-5xl lg:text-6xl lg:leading-[1.1]">
           Descubre los negocios{" "}
           <span className="italic text-primary">de tu comunidad</span>
         </h1>
+
+        <p className="animate-in fade-in slide-in-from-bottom-4 mt-4 text-lg text-white/80 duration-700 fill-mode-both delay-150 md:mt-6 md:text-xl">
+          Encuentra y conecta con negocios locales cerca de ti
+        </p>
 
         <div className="relative z-[50] animate-in fade-in slide-in-from-bottom-4 mt-8 duration-700 fill-mode-both delay-500 md:mt-10">
           <HeroSearchBar />

@@ -18,6 +18,12 @@ export function SplashScreen() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
+    // Ocultar el splash estático cuando React carga
+    const staticSplash = document.getElementById("static-splash");
+    if (staticSplash) {
+      staticSplash.style.display = "none";
+    }
+
     // Ocultar el splash después de que la app cargue
     const timer = setTimeout(() => {
       setIsLoading(false);
