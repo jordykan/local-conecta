@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+
 import { useTheme } from "next-themes";
 
 export function SplashScreen() {
@@ -52,12 +52,11 @@ export function SplashScreen() {
     >
       <div className="flex flex-col items-center gap-6">
         <div className="animate-pulse">
-          <Image
+          <img
             src="/assets/logo_web.png"
             alt="Mercadito"
-            width={200}
-            height={200}
-            priority
+            width="200"
+            height="200"
           />
         </div>
         <div className="flex gap-1.5">

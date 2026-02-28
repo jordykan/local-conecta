@@ -10,6 +10,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { AuthSubscriptionSync } from "@/components/AuthSubscriptionSync";
 import { SplashScreen } from "@/components/SplashScreen";
+import { AppleSplashPWA } from "@/components/AppleSplashPWA";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -117,7 +118,9 @@ export default function RootLayout({
             alt="Mercadito"
             width="200"
             height="200"
-            style={{ animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}
+            style={{
+              animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            }}
           />
           <div style={{ display: "flex", gap: "0.375rem" }}>
             <div
@@ -202,6 +205,7 @@ export default function RootLayout({
           <RealtimeProvider>
             <SplashScreen />
             <PWAInitializer />
+            <AppleSplashPWA />
             {children}
             <InstallPrompt />
             <PushNotificationManager />
