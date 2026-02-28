@@ -117,8 +117,7 @@ export default function RootLayout({
           <img
             src="/assets/logo_web.png"
             alt="Mercadito"
-            width="350"
-            height="350"
+            className="splash-logo"
           />
         </div>
         <style
@@ -147,6 +146,11 @@ export default function RootLayout({
                 #static-splash {
                   display: none !important;
                 }
+              }
+              .splash-logo {
+                width: max(350px, 45vmin);
+                height: max(350px, 45vmin);
+                object-fit: contain;
               }
               @keyframes pulse {
                 0%, 100% { opacity: 1; }

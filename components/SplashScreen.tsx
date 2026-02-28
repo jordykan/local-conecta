@@ -66,8 +66,7 @@ export function SplashScreen() {
           <img
             src="/assets/logo_web.png"
             alt="Mercadito"
-            width="350"
-            height="350"
+            className="splash-logo"
           />
         </div>
 
