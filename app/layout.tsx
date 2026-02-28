@@ -10,7 +10,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { AuthSubscriptionSync } from "@/components/AuthSubscriptionSync";
 import { SplashScreen } from "@/components/SplashScreen";
-import { AppleSplashPWA } from "@/components/AppleSplashPWA";
+import { iOSPWASplashLinks } from "@/components/iOSPWASplashLinks";
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -94,6 +94,7 @@ export default function RootLayout({
             `,
           }}
         />
+        <iOSPWASplashLinks />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -205,7 +206,6 @@ export default function RootLayout({
           <RealtimeProvider>
             <SplashScreen />
             <PWAInitializer />
-            <AppleSplashPWA />
             {children}
             <InstallPrompt />
             <PushNotificationManager />
